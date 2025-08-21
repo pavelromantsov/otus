@@ -10,7 +10,7 @@ namespace ConsoleBotApp
         private const string version = "1.0";
         private const string created_date = "20-08-2025";
 
-        static void Main(string[] args)
+        static void Main()
         {
             bool run = true;
 
