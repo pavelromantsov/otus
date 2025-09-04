@@ -151,7 +151,7 @@ namespace ConsoleBotApp
             Console.Write("Введите описание задачи: ");
             string taskDescription = Console.ReadLine();
             tasks.Add(taskDescription);
-            Console.WriteLine("Задача добавлена");
+            Console.WriteLine($"Задача {taskDescription} добавлена"); 
         }
 
         private static void ShowTaskCommand()
