@@ -192,7 +192,7 @@ namespace ConsoleBotApp
                 {
                     if (index >= 1 && index <= tasks.Count) // проверяем, что список не пустой, затем удаляем задачу
                     {
-                        Console.WriteLine($"Задача \"{index}. {tasks[index - 1]}\"  удалена\n");
+                        Console.WriteLine($"Задача \"{tasks[index - 1]}\"  удалена\n");
                         tasks.RemoveAt(index - 1);
                         Console.WriteLine("Cписок задач после удаления");
                         ShowTaskCommand();
