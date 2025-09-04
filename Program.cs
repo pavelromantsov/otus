@@ -151,13 +151,12 @@ namespace ConsoleBotApp
             Console.Write("Введите описание задачи: ");
             string taskDescription = Console.ReadLine();
             tasks.Add(taskDescription);
-            Console.WriteLine($"Задача {taskDescription} добавлена"); 
+            Console.WriteLine($"Задача \"{taskDescription}\" добавлена");
         }
 
         private static void ShowTaskCommand()
         {
             //проверяем, что список содержит элементы
-
             bool isNotEmpty = tasks.Any();
             if (isNotEmpty)
 
@@ -182,6 +181,7 @@ namespace ConsoleBotApp
                 Console.WriteLine("Cписок пуст");
                 return;
             }
+            Console.Write("Вот ваш список задач:\n");
             ShowTaskCommand();
 
             //пытаемся удалить задачу
@@ -192,7 +192,7 @@ namespace ConsoleBotApp
                 {
                     if (index >= 1 && index <= tasks.Count) // проверяем, что список не пустой, затем удаляем задачу
                     {
-                        Console.WriteLine($"Задача {index}. {tasks[index - 1]}  удалена\n");
+                        Console.WriteLine($"Задача \"{index}. {tasks[index - 1]}\"  удалена\n");
                         tasks.RemoveAt(index - 1);
                         Console.WriteLine("Cписок задач после удаления");
                         ShowTaskCommand();
