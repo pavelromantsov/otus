@@ -17,6 +17,9 @@ namespace ConsoleBotApp
             Console.WriteLine("Добро пожаловать в консольное приложение, имитирующее работу Телеграмм-бота!" +
                                "\n\nСписок команд:");
             Console.WriteLine("/start - начать работу");
+            Console.WriteLine("/addtask - добавить задачу в список");
+            Console.WriteLine("/showtasks - отображение списка всех добавленных задач");
+            Console.WriteLine("/removetask - удалить задачу из списка");
             Console.WriteLine("/help - справка по использованию");
             Console.WriteLine("/info - информация о программе");
             Console.WriteLine("/exit - завершение работы");
@@ -65,7 +68,7 @@ namespace ConsoleBotApp
             {
                 if (IsAllLetters(username))
                 {
-                    Console.WriteLine($"Здравствуйте, {username}." );
+                    Console.WriteLine($"Здравствуйте, {username}. Чем могу помочь?" );
                     return;   
                 }
                 else
@@ -82,6 +85,10 @@ namespace ConsoleBotApp
             Console.WriteLine("Доступные команды:");
             Console.WriteLine("/start - Начало взаимодействия с программой");
             Console.WriteLine("/help - Показать данную справку");
+            Console.WriteLine("/addtask - Добавить задачу в список, ввести описание задачи");
+            Console.WriteLine("/showtasks - Отображение списка всех добавленных задач либо сообщает, что задач нет");
+            Console.WriteLine("/removetask - Отобразить список задач с номерами, запросить у пользователя номер " +
+                              "задачи для удаления и удалить выбранную задачу из списка"); 
             Console.WriteLine("/info - Информация о версии и дате создания программы");
             Console.WriteLine("/echo <текст> - Повторяет введённый вами текст");
             Console.WriteLine("/exit - Завершение работы программы");
