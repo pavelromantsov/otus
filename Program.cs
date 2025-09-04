@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+
 
 namespace ConsoleBotApp
 {
@@ -7,8 +9,10 @@ namespace ConsoleBotApp
     {
 
         private static string username = "";
-        private const string version = "1.0";
+        private const string version = "1.1";
         private const string created_date = "20-08-2025";
+        private const string updated_date = "04-09-2025";
+        private static List<string> tasks = new List<string>();
 
         static void Main()
         {
@@ -35,6 +39,18 @@ namespace ConsoleBotApp
                         StartCommand();
                         break;
 
+                    case "/addtask":
+                        AddTaskCommand();
+                        break;
+
+                    case "/showtasks":
+                        ShowTaskCommand();
+                        break;
+
+                    case "/removetask":
+                        RemoveTaskCommand();
+                        break;
+
                     case "/help":
                         HelpCommand();
                         break;
@@ -59,7 +75,7 @@ namespace ConsoleBotApp
         {
             Console.Write("Введите ваше имя:");
             username = Console.ReadLine();
-         
+
             bool IsAllLetters(string username)
             {
                 return username.All(char.IsLetter);
@@ -68,8 +84,8 @@ namespace ConsoleBotApp
             {
                 if (IsAllLetters(username))
                 {
-                    Console.WriteLine($"Здравствуйте, {username}. Чем могу помочь?" );
-                    return;   
+                    Console.WriteLine($"Здравствуйте, {username}. Чем могу помочь?");
+                    return;
                 }
                 else
                 {
@@ -85,10 +101,9 @@ namespace ConsoleBotApp
             Console.WriteLine("Доступные команды:");
             Console.WriteLine("/start - Начало взаимодействия с программой");
             Console.WriteLine("/help - Показать данную справку");
-            Console.WriteLine("/addtask - Добавить задачу в список, ввести описание задачи");
-            Console.WriteLine("/showtasks - Отображение списка всех добавленных задач либо сообщает, что задач нет");
-            Console.WriteLine("/removetask - Отобразить список задач с номерами, запросить у пользователя номер " +
-                              "задачи для удаления и удалить выбранную задачу из списка"); 
+            Console.WriteLine("/addtask - Команда для добавления задачи в список");
+            Console.WriteLine("/showtasks - Команда для отображения списка задач");
+            Console.WriteLine("/removetask - Команда для удаления задач из списка");
             Console.WriteLine("/info - Информация о версии и дате создания программы");
             Console.WriteLine("/echo <текст> - Повторяет введённый вами текст");
             Console.WriteLine("/exit - Завершение работы программы");
@@ -97,7 +112,7 @@ namespace ConsoleBotApp
         private static void InfoCommand()
         {
             Console.WriteLine($"Консольное приложение для имитации работы бота версия {version}, " +
-                              $"создано {created_date}");
+                              $"создано {created_date}, обновлено {updated_date}");
         }
 
         private static void ExitCommand(ref bool running)
@@ -115,7 +130,8 @@ namespace ConsoleBotApp
             }
             else
             {
-                Console.WriteLine("Такой команды нет. Используйте команды (/start, /help, /info, /exit)");
+                Console.WriteLine("Такой команды нет. Используйте команды (/start, /addtask, /showtasks," +
+                    " /removetask, /help, /info, /exit)");
             }
         }
 
@@ -130,5 +146,70 @@ namespace ConsoleBotApp
                 Console.WriteLine($"Вы ввели: {text}");
             }
         }
+        private static void AddTaskCommand()
+        {
+            Console.Write("Введите описание задачи: ");
+            string taskDescription = Console.ReadLine();
+            tasks.Add(taskDescription);
+            Console.WriteLine("Задача добавлена");
+        }
+
+        private static void ShowTaskCommand()
+        {
+            //проверяем, что список содержит элементы
+
+            bool isNotEmpty = tasks.Any();
+            if (isNotEmpty)
+
+            //если есть задачи, по выводим на экран
+            {
+                for (int i = 0; i < tasks.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1}. " + tasks[i]);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Ваш список пуст");
+            }
+        }
+
+        private static void RemoveTaskCommand()
+        {
+            //проверка списка на наличие элементов
+            if (!tasks.Any())
+            {
+                Console.WriteLine("Cписок пуст");
+                return;
+            }
+            ShowTaskCommand();
+
+            //пытаемся удалить задачу
+            Console.Write("Введите номер задачи, которую нужно удалить: ");
+            while (true)
+            {
+                if (int.TryParse(Console.ReadLine(), out int index))
+                {
+                    if (index >= 1 && index <= tasks.Count) // проверяем, что список не пустой, затем удаляем задачу
+                    {
+                        Console.WriteLine($"Задача {index}. {tasks[index - 1]}  удалена\n");
+                        tasks.RemoveAt(index - 1);
+                        Console.WriteLine("Cписок задач после удаления");
+                        ShowTaskCommand();
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Нет задачи с указанным номером." +
+                            " Введите корректный номер задачи");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Данные введены неверно");
+                }
+            }
+        }
+
     }
 }
