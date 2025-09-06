@@ -166,9 +166,7 @@ namespace ConsoleBotApp
                 {
                     Console.WriteLine($"{i + 1}. " + tasks[i]);
                 }
-                return true;
-            }
-                
+            }  
             else
             {
                 Console.WriteLine("Ваш список пуст");
@@ -177,13 +175,7 @@ namespace ConsoleBotApp
 
         private static void RemoveTaskCommand()
         {
-            //проверка списка на наличие элементов
-            if (!ShowTaskCommand())
-            {   
-                return;
-            }
-            Console.Write("Вот ваш список задач:\n");        
-
+            ShowTaskCommand();
             //пытаемся удалить задачу
             Console.Write("Введите номер задачи, которую нужно удалить: ");
             while (true)
