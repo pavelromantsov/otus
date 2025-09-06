@@ -194,7 +194,7 @@ namespace ConsoleBotApp
                 if (int.TryParse(Console.ReadLine(), out int index))
                 {
                     
-                    if (ShowTaskCommand)// проверяем, что список не пустой, затем удаляем задачу
+                    if (ShowTaskCommand())// проверяем, что список не пустой, затем удаляем задачу
                     {
                         Console.WriteLine($"Задача \"{tasks[index - 1]}\"  удалена\n");
                         tasks.RemoveAt(index - 1);
