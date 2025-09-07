@@ -154,7 +154,7 @@ namespace ConsoleBotApp
             Console.WriteLine($"Задача \"{taskDescription}\" добавлена");
         }
 
-        private static void ShowTaskCommand()
+        private static bool ShowTaskCommand()
         {
             //проверяем, что список содержит элементы
             bool isNotEmpty = tasks.Any();
@@ -171,6 +171,7 @@ namespace ConsoleBotApp
             {
                 Console.WriteLine("Ваш список пуст");
             }
+            return isNotEmpty;
         }
 
         private static void RemoveTaskCommand()
