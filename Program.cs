@@ -158,7 +158,7 @@ namespace ConsoleBotApp
         {
             //проверяем, что список содержит элементы
             bool isNotEmpty = tasks.Any();
-            
+
             //если есть задачи, по выводим на экран
             if (isNotEmpty)
             {
@@ -166,7 +166,7 @@ namespace ConsoleBotApp
                 {
                     Console.WriteLine($"{i + 1}. " + tasks[i]);
                 }
-            }  
+            }
             else
             {
                 Console.WriteLine("Ваш список пуст");
@@ -180,9 +180,9 @@ namespace ConsoleBotApp
             //пытаемся удалить задачу
             Console.Write("Введите номер задачи, которую нужно удалить: ");
             while (true)
-            {     
+            {
                 if (int.TryParse(Console.ReadLine(), out int index))
-                {   
+                {
                     if (ShowTaskCommand())// проверяем, что список не пустой, затем удаляем задачу
                     {
                         Console.WriteLine($"Задача \"{tasks[index - 1]}\"  удалена\n");
