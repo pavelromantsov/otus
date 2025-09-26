@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using ConsoleBotCommands;
 
 namespace ConsoleBotApp
@@ -8,71 +9,102 @@ namespace ConsoleBotApp
     class Program
     {
         private static ToDoUser currentUser = null;
-        private const string version = "1.2";
+        private const string version = "1.3";
         private const string created_date = "20-08-2025";
-        private const string updated_date = "09-09-2025";
+        private const string updated_date = "17-09-2025";
+        private const string whatsNew_text = "добавлена обработка исключений";
         private static List<ToDoItem> tasks = new List<ToDoItem>();
 
         static void Main()
-        {
+        {   
             bool run = true;
-            Console.WriteLine("Добро пожаловать в консольное приложение, имитирующее работу Телеграмм-бота!" +
-                               "\n\nСписок команд:");
-            Console.WriteLine("/start - начать работу");
-            Console.WriteLine("/addtask - добавить задачу в список");
-            Console.WriteLine("/showtasks - отображение списка активных задач");
-            Console.WriteLine("/completetask - отметить задачу как завершенную");
-            Console.WriteLine("/showalltasks - показать все задачи");
-            Console.WriteLine("/removetask - удалить задачу из списка");
-            Console.WriteLine("/help - справка по использованию");
-            Console.WriteLine("/info - информация о программе");
-            Console.WriteLine("/exit - завершение работы");
-            while (run)
+            bool success = false;
+            while (!success && run)
+            try
             {
-                Console.Write("\nВведите команду: ");
-                string input = Console.ReadLine();
+                //Ввод ограничения на количество задач
+                Console.Write("Введите максимально допустимое количество задач (от 1 до 100): ");
+                int maxTaskCount = TaskValidate.ParseAndValidateInt(Console.ReadLine(), 1, 100);
 
-                switch (input.ToLower())
+                //Ввод ограничения на длину задачи
+                Console.Write("Введите максимально допустимую длину задачи (от 1 до 100): ");
+                int maxTaskLength = TaskValidate.ParseAndValidateInt(Console.ReadLine(), 1, 100);
+                
+                Console.WriteLine("Добро пожаловать в консольное приложение, имитирующее работу " +
+                    "Телеграмм-бота!" + "\n\nСписок команд:");
+                Console.WriteLine("/start - начать работу");
+                Console.WriteLine("/addtask - добавить задачу в список");
+                Console.WriteLine("/showtasks - отображение списка активных задач");
+                Console.WriteLine("/completetask - отметить задачу как завершенную");
+                Console.WriteLine("/showalltasks - показать все задачи");
+                Console.WriteLine("/removetask - удалить задачу из списка");
+                Console.WriteLine("/help - справка по использованию");
+                Console.WriteLine("/info - информация о программе");
+                Console.WriteLine("/exit - завершение работы");
+                
+                while (run)
                 {
-                    case "/start":
-                        StartCommand();
-                        break;
+                    Console.Write("\nВведите команду: ");
+                    string input = Console.ReadLine();
 
-                    case "/addtask":
-                        AddTaskCommand();
-                        break;
+                    switch (input.ToLower())
+                    {
+                        case "/start":
+                            StartCommand();
+                            break;
 
-                    case "/showtasks":
-                        ShowTaskCommand();
-                        break;
+                        case "/addtask":
+                            AddTaskCommand(maxTaskCount, maxTaskLength);
+                            break;
 
-                    case "/completetask":
-                        CompleteTaskCommand();
-                        break;
+                        case "/showtasks":
+                            ShowTaskCommand();
+                            break;
 
-                    case "/showalltasks":
-                        ShowAllTaskCommand();
-                        break;
+                        case "/completetask":
+                            CompleteTaskCommand();
+                            break;
 
-                    case "/removetask":
-                        RemoveTaskCommand();
-                        break;
+                        case "/showalltasks":
+                            ShowAllTaskCommand();
+                            break;
 
-                    case "/help":
-                        HelpCommand();
-                        break;
+                        case "/removetask":
+                            RemoveTaskCommand();
+                            break;
 
-                    case "/info":
-                        InfoCommand();
-                        break;
+                        case "/help":
+                            HelpCommand();
+                            break;
 
-                    case "/exit":
-                        ExitCommand(ref run);
-                        break;
+                        case "/info":
+                            InfoCommand();
+                            break;
 
-                    default:
-                        CustomCommands(input);
-                        break;
+                        case "/exit":
+                            ExitCommand(ref run);
+                            break;
+
+                        default:
+                            CustomCommands(input);
+                            break;
+                    }
+                }
+            }
+            catch (ArgumentException e)
+            {
+                Console.WriteLine(e.Message); 
+                Console.WriteLine("Пожалуйста, попробуйте снова.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Произошла непредвиденная ошибка:");
+                Console.WriteLine($"Тип исключения: {ex.GetType().FullName}");
+                Console.WriteLine($"Сообщение: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
                 }
             }
         }
@@ -121,7 +153,8 @@ namespace ConsoleBotApp
         private static void InfoCommand()
         {
             Console.WriteLine($"Консольное приложение для имитации работы бота версия {version}, " +
-                              $"создано {created_date}, обновлено {updated_date}");
+                   $"создано {created_date}, обновлено {updated_date}. \n" +
+                   $"В этой версии программы {whatsNew_text}");
         }
 
         private static void ExitCommand(ref bool running)
@@ -156,23 +189,51 @@ namespace ConsoleBotApp
             }
         }
 
-        private static void AddTaskCommand()
+        private static void AddTaskCommand(int maxTaskCount, int maxTaskLength)
         {
-            Console.Write("Введите описание задачи: ");
-            string taskDescription = Console.ReadLine();
-            while (true)
+            try
             {
-                if (!string.IsNullOrWhiteSpace(taskDescription))
+                Console.Write("Введите описание задачи: ");
+                string taskDescription = Console.ReadLine();
+
+                // Проверка на длину задачи
+                if (taskDescription.Length > maxTaskLength)
                 {
-                    var newTask = new ToDoItem(currentUser, taskDescription);
-                    tasks.Add(newTask);
-                    Console.WriteLine($"Задача \"{taskDescription}\" добавлена");
+                    throw new TaskLengthLimitException(taskDescription.Length, maxTaskLength);
                 }
-                else
+
+                // Проверка на дубликаты
+                if (tasks.Any(x => x.Name == taskDescription))
                 {
-                    Console.WriteLine("Название задачи не может быть пустым.");
+                    throw new DuplicateTaskException(taskDescription);
                 }
-                break;
+
+                // Проверка на достижение лимита задач
+                if (tasks.Count >= maxTaskCount)
+                {
+                    throw new TaskCountLimitException(maxTaskCount);
+                }
+
+                // Добавляем задачу
+                var newTask = new ToDoItem(currentUser, taskDescription);
+                tasks.Add(newTask);
+                Console.WriteLine($"Задача \"{taskDescription}\" успешно добавлена");
+            }
+            catch (TaskCountLimitException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            catch (TaskLengthLimitException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            catch (DuplicateTaskException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Произошла непредвиденная ошибка: {ex.Message}");
             }
         }
 
@@ -203,41 +264,32 @@ namespace ConsoleBotApp
             return true;
         }
 
-        private static bool CompleteTaskCommand()
+        private static void CompleteTaskCommand()
         {
             ShowTaskCommand();
-            if (tasks.Any())
+            Console.Write("Введите ID задачи для завершения: ");
+            string taskIdInput = Console.ReadLine();
+
+            try
             {
-                Console.Write("Введите ID задачи для завершения: ");
-                while (true)
+                Guid taskId = Guid.Parse(taskIdInput);
+                var task = tasks.FirstOrDefault(x => x.Id == taskId);
+
+                if (task != null)
                 {
-                    if (Guid.TryParse(Console.ReadLine(), out Guid idInput))
-                    {
-                        var task = tasks.FirstOrDefault(t => t.Id == idInput);
-                        if (task != null)
-                        {
-                            task.State = ToDoItemState.Completed;
-                            task.StateChangedAt = DateTime.UtcNow;
-                            Console.WriteLine($"Задача \"{task.Name}\" выполнена");
-                            break;
-                        }
-                        else
-                        {
-                            Console.WriteLine("Нет задачи с указанным ID." +
-                                " Введите корректный ID задачи");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Данные введены неверно");
-                    }
+                    task.State = ToDoItemState.Completed;
+                    task.StateChangedAt = DateTime.UtcNow;
+                    Console.WriteLine($"Задача \"{task.Name}\" завершена.");
+                }
+                else
+                {
+                    Console.WriteLine("Задача с указанным ID не найдена.");
                 }
             }
-            else
+            catch (FormatException)
             {
-                return false;
+                Console.WriteLine("Введён некорректный ID задачи.");
             }
-            return true;
         }
 
         private static bool ShowAllTaskCommand()
@@ -256,7 +308,7 @@ namespace ConsoleBotApp
                             $"добавлена {task.value.CreatedAt} - ID задачи: {task.value.Id} " +
                             $"- задача выполнена");
                     }
-                    else
+                    else 
                     {
                         Console.WriteLine($"Задача {index + 1}. \"{task.value.Name}\" - " +
                             $"добавлена {task.value.CreatedAt} - ID задачи: {task.value.Id} " +
@@ -275,7 +327,7 @@ namespace ConsoleBotApp
         private static void RemoveTaskCommand()
         {
             //если есть задачи, удаляем
-            while (ShowAllTaskCommand() == true)
+            while (ShowAllTaskCommand()==true)
             {
                 Console.WriteLine("Введите ID задачи, которую нужно удалить: ");
                 if (Guid.TryParse(Console.ReadLine(), out Guid idInput))
