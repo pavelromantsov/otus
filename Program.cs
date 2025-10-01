@@ -1,133 +1,37 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using ConsoleBotCommands;
+using ConsoleBotProgramm;
+using Otus.ToDoList.ConsoleBot;
+using Otus.ToDoList.ConsoleBot.Types;
 
 namespace ConsoleBotApp
 {
     class Program
     {
+        public static ToDoUser? currentUser = null;
+        public const string version = "2.0";
+        public const string created_date = "20-08-2025";
+        public const string updated_date = "29-09-2025";
+        public const string whatsNew_text = "Подключены классы и реализованы интерфейсы";
+        public static List<ToDoItem> tasks = new List<ToDoItem>();
 
-        private static string username = "";
-        private const string version = "1.0";
-        private const string created_date = "20-08-2025";
-
-        static void Main()
+        public static void Main(string[] args)
         {
-            bool run = true;
-
-            Console.WriteLine("Добро пожаловать в консольное приложение, имитирующее работу Телеграмм-бота!" +
-                               "\n\nСписок команд:");
-            Console.WriteLine("/start - начать работу");
-            Console.WriteLine("/addtask - добавить задачу в список");
-            Console.WriteLine("/showtasks - отображение списка всех добавленных задач");
-            Console.WriteLine("/removetask - удалить задачу из списка");
-            Console.WriteLine("/help - справка по использованию");
-            Console.WriteLine("/info - информация о программе");
-            Console.WriteLine("/exit - завершение работы");
-
-            while (run)
+            try
             {
-                Console.Write("\nВведите команду: ");
-                string input = Console.ReadLine();
-
-                switch (input.ToLower())
-                {
-                    case "/start":
-                        StartCommand();
-                        break;
-
-                    case "/help":
-                        HelpCommand();
-                        break;
-
-                    case "/info":
-                        InfoCommand();
-                        break;
-
-                    case "/exit":
-                        ExitCommand(ref run);
-                        break;
-
-                    default:
-                        CustomCommands(input);
-                        break;
-                }
+                var userService = new UserService();
+                var todoService = new ToDoService();
+                var botClient = new ConsoleBotClient();
+                var updateHandler = new UpdateHandler(botClient, userService, todoService);
+                botClient.StartReceiving(updateHandler);
+                Task.Delay(0);
             }
-        }
-
-        // Реализация каждой команды
-        private static void StartCommand()
-        {
-            Console.Write("Введите ваше имя:");
-            username = Console.ReadLine();
-         
-            bool IsAllLetters(string username)
+            catch (Exception ex)
             {
-                return username.All(char.IsLetter);
-            }
-            while (true)
-            {
-                if (IsAllLetters(username))
-                {
-                    Console.WriteLine($"Здравствуйте, {username}. Чем могу помочь?" );
-                    return;   
-                }
-                else
-                {
-                    Console.WriteLine("Имя должно состоять из букв. Попробуйте еще раз\n");
-                    Console.Write("Введите ваше имя:");
-                    username = Console.ReadLine();
-                }
-            }
-        }
-
-        private static void HelpCommand()
-        {
-            Console.WriteLine("Доступные команды:");
-            Console.WriteLine("/start - Начало взаимодействия с программой");
-            Console.WriteLine("/help - Показать данную справку");
-            Console.WriteLine("/addtask - Добавить задачу в список, ввести описание задачи");
-            Console.WriteLine("/showtasks - Отображение списка всех добавленных задач либо сообщает, что задач нет");
-            Console.WriteLine("/removetask - Отобразить список задач с номерами, запросить у пользователя номер " +
-                              "задачи для удаления и удалить выбранную задачу из списка"); 
-            Console.WriteLine("/info - Информация о версии и дате создания программы");
-            Console.WriteLine("/echo <текст> - Повторяет введённый вами текст");
-            Console.WriteLine("/exit - Завершение работы программы");
-        }
-
-        private static void InfoCommand()
-        {
-            Console.WriteLine($"Консольное приложение для имитации работы бота версия {version}, " +
-                              $"создано {created_date}");
-        }
-
-        private static void ExitCommand(ref bool running)
-        {
-            Console.WriteLine("Завершаем работу...");
-            running = false;
-        }
-
-        private static void CustomCommands(string command)
-        {
-            if (command.StartsWith("/echo "))
-            {
-                string message = command.Substring(6); // Убираем "/echo "
-                EchoCommand(message);
-            }
-            else
-            {
-                Console.WriteLine("Такой команды нет. Используйте команды (/start, /help, /info, /exit)");
-            }
-        }
-
-        private static void EchoCommand(string text)
-        {
-            if (username != "")
-            {
-                Console.WriteLine($"{username}, вы ввели: {text}");
-            }
-            else
-            {
-                Console.WriteLine($"Вы ввели: {text}");
+                Console.WriteLine($"Произошла ошибка: {ex.Message}");
             }
         }
     }
