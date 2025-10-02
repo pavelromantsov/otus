@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ConsoleBotCommands;
 using Otus.ToDoList.ConsoleBot;
 using Otus.ToDoList.ConsoleBot.Types;
 
 
-namespace ConsoleBotProgramm
+namespace ConsoleBotCommands
 {
     public class UpdateHandler:IUpdateHandler, IToDoService
     {
@@ -31,20 +30,15 @@ namespace ConsoleBotProgramm
                 var message = update.Message;
                 if (message == null)
                     return;
-
+                
                 var chatId = message.Chat.Id;
                 var command = message.Text.Split(' ').First();
-
                 var user = _userService.GetUser(message.From.Id);
+                
                 if (user == null)
                 {
                     user = _userService.RegisterUser(message.From.Id, message.From.Username);
                 }
-
-
-
-
-
 
                 switch (command)
                 {
@@ -85,11 +79,10 @@ namespace ConsoleBotProgramm
 
         private void StartCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user )
         {
-
-            botClient.SendMessage(update.Message.Chat, $"Привет, {user.TelegramUserName}! Я твой помощник по управлению задачами.");
-
-            botClient.SendMessage(update.Message.Chat, "Добро пожаловать в консольное приложение, имитирующее работу " +
-                                  "Телеграмм-бота!" + "\n\nСписок команд:");
+            botClient.SendMessage(update.Message.Chat, $"Привет, {user.TelegramUserName}! Я твой помощник " +
+                $"по управлению задачами.");
+            botClient.SendMessage(update.Message.Chat, "Добро пожаловать в консольное приложение, " +
+                "имитирующее работу Телеграмм-бота!" + "\n\nСписок команд:");
             botClient.SendMessage(update.Message.Chat, "/start - начать работу");
             botClient.SendMessage(update.Message.Chat, "/addtask - добавить задачу в список");
             botClient.SendMessage(update.Message.Chat, "/showtasks - отображение списка активных задач");
@@ -99,22 +92,10 @@ namespace ConsoleBotProgramm
             botClient.SendMessage(update.Message.Chat, "/help - справка по использованию");
             botClient.SendMessage(update.Message.Chat, "/info - информация о программе");
             botClient.SendMessage(update.Message.Chat, "/exit - завершение работы");
-
-            // Запрашиваем максимальное количество задач
-
-            //botClient.SendMessage(update.Message.Chat, "Введите максимальное количество задач (от 1 до 100):");
-            //var maxTaskCount = _toDoService.ParseAndValidateInt(update.Message.Text, 1, 100);
-
-            // Запрашиваем максимальную длину названия задачи
-            //botClient.SendMessage(update.Message.Chat, "Введите максимальную длину названия задачи (от 1 до 100):");
-            //var maxTaskLength = _toDoService.ParseAndValidateInt(update.Message.Text, 1, 100);
-
-            // Сообщаем пользователю о настройках
-            //botClient.SendMessage(update.Message.Chat, $"Максимальное количество задач установлено: {maxTaskCount}. Максимальная длина названия задачи установлена: {maxTaskLength}.");
-
-        }
+         }
         
-        private void AddTaskCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, string message)
+        private void AddTaskCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, 
+            string message)
         {
 
             var taskName = update.Message.Text;
@@ -163,7 +144,8 @@ namespace ConsoleBotProgramm
             botClient.SendMessage(update.Message.Chat, output);
         }
 
-        public void CompleteTaskCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, string message)
+        public void CompleteTaskCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, 
+            string message)
         {
             var parts = message.Split(' ');
             if (int.TryParse(parts[1], out var taskIndex))
@@ -178,13 +160,15 @@ namespace ConsoleBotProgramm
                 botClient.SendMessage(update.Message.Chat, "Некорректный номер задачи.");
             }
         }
-        public void ShowAllTasksCommand(ITelegramBotClient botClient, Update update,long chat, ToDoUser user, string command)
+        public void ShowAllTasksCommand(ITelegramBotClient botClient, Update update,long chat, ToDoUser user, 
+            string command)
         {
             var allTasks = _toDoService.GetAllByUserId(user.UserId);
             if (allTasks.Any())
             {
                 var output = string.Join(Environment.NewLine, allTasks.Select((t, i) =>
-                    $"{i + 1}. {t.Name} (создана {t.CreatedAt}, {(t.State == ToDoItemState.Active ? "активна" : "завершена")})"));
+                    $"{i + 1}. {t.Name} (создана {t.CreatedAt}, {(t.State == ToDoItemState.Active ? "активна"
+                    : "завершена")})"));
                 botClient.SendMessage(update.Message.Chat, $"Все задачи:\n{output}");
             }
             else
@@ -192,7 +176,8 @@ namespace ConsoleBotProgramm
                 botClient.SendMessage(update.Message.Chat, "Задач нет.");
             }
         }
-        private void RemoveTaskCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, string message)
+        private void RemoveTaskCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, 
+            string message)
         {
             var parts = message.Split(' ');
             if (parts.Length < 2 || !int.TryParse(parts[1], out var taskIndex))
@@ -228,7 +213,9 @@ namespace ConsoleBotProgramm
 
         private void InfoCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user)
         {
-            botClient.SendMessage(update.Message.Chat, $"Консольная версия бота для управления задачами, версия {ConsoleBotApp.Program.version}.\nСоздано {ConsoleBotApp.Program.created_date}, обновлено {ConsoleBotApp.Program.updated_date}.");
+            botClient.SendMessage(update.Message.Chat, $"Консольная версия бота для управления задачами, " +
+                $"версия {Program.version}.\nСоздано {Program.created_date}, " +
+                $"обновлено {Program.updated_date}.");
         }
 
         public IReadOnlyList<ToDoItem> GetAllByUserId(Guid userId)

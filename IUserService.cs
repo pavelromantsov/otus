@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ConsoleBotCommands;
 
-namespace ConsoleBotProgramm
+namespace ConsoleBotCommands
 {
     public interface IUserService
     {
