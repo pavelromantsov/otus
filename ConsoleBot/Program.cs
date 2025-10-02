@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using ConsoleBotCommands;
-using ConsoleBotProgramm;
 using Otus.ToDoList.ConsoleBot;
 using Otus.ToDoList.ConsoleBot.Types;
 
-namespace ConsoleBotApp
+namespace ConsoleBotCommands
 {
     class Program
     {

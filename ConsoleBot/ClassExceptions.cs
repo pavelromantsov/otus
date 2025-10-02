@@ -29,5 +29,5 @@ namespace ConsoleBotCommands
         public DuplicateTaskException(string task) :
             base($"Задача '{task}' уже существует")
         { }
-    }  
+    }
 }
