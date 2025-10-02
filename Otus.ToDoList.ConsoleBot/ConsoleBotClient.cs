@@ -82,9 +82,4 @@ public class ConsoleBotClient : ITelegramBotClient
         Console.WriteLine(text);
         Console.ForegroundColor = currentColor;
     }
-
-    internal void SendMessage(object chat, string v)
-    {
-        throw new NotImplementedException();
-    }
 }
