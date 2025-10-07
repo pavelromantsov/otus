@@ -11,12 +11,13 @@ namespace ConsoleBotCommands
         public Guid UserId { get; set; }
         public string TelegramUserName { get; set; }
         public DateTime RegisteredAt { get; set; }
-
-        public ToDoUser(string telegramUserName)
+        public long TelegramUserId { get; set; }
+        public ToDoUser(long telegramUserId, string telegramUserName)
         {
             UserId = Guid.NewGuid();
             TelegramUserName = telegramUserName;
             RegisteredAt = DateTime.UtcNow;
+            TelegramUserId = telegramUserId;
         }
     }
 }
