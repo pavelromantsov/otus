@@ -12,7 +12,7 @@ namespace ConsoleBot.Core.Services
 {
     public class ToDoService : IToDoService
     {
-        private readonly IList<ToDoItem> _tasks = new List<ToDoItem>();
+        //private readonly IList<ToDoItem> _tasks = new List<ToDoItem>();
         private readonly IToDoRepository _repository;
 
         public ToDoService(IToDoRepository repository)

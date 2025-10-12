@@ -1,17 +1,22 @@
-﻿using System;
+﻿using ConsoleBot.Core.DataAccess;
+using ConsoleBot.Core.Entities;
+using Otus.ToDoList.ConsoleBot.Types;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ConsoleBot.Core.DataAccess;
-using ConsoleBot.Core.Entities;
 
 namespace ConsoleBot.Core.Services
 {
     public class UserService : IUserService, IUserRepository
     {
-        //private readonly IDictionary<long, ToDoUser> _users = new Dictionary<long, ToDoUser>();
         private readonly IUserRepository _repository;
+        
+        public UserService(IUserRepository repository)
+        {
+            _repository = repository;
+        }
 
         public ToDoUser RegisterUser(long telegramUserId, string telegramUserName)
         {
@@ -33,23 +38,17 @@ namespace ConsoleBot.Core.Services
 
         public ToDoUser? GetUser(Guid userId)
         {
-            throw new NotImplementedException();
+            return _repository.GetUser(userId);
         }
 
         public ToDoUser? GetUserByTelegramUserId(long telegramUserId)
         {
-            throw new NotImplementedException();
+            return _repository.GetUserByTelegramUserId(telegramUserId);
         }
 
-        public void Add(ToDoUser user)
-        {
-            throw new NotImplementedException();
+        public void Add(ToDoUser user) 
+        {               
+            throw new NotImplementedException(); 
         }
-
-        public UserService(IUserRepository repository)
-        {
-            _repository = repository;
-        }
-
     }
 }
