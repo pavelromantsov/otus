@@ -9,10 +9,11 @@ using System.Threading.Tasks;
 
 namespace ConsoleBot.Core.Services
 {
-    public class UserService : IUserService, IUserRepository
+    public class UserService : IUserService
     {
         private readonly IUserRepository _repository;
-        
+        private readonly List<ToDoUser> _users = new List<ToDoUser>();
+
         public UserService(IUserRepository repository)
         {
             _repository = repository;
@@ -47,8 +48,14 @@ namespace ConsoleBot.Core.Services
         }
 
         public void Add(ToDoUser user) 
-        {               
-            throw new NotImplementedException(); 
+        {
+            {
+                if (_users.Any(u => u.UserId == user.UserId))
+                {
+                    throw new InvalidOperationException("Пользователь с таким идентификатором уже существует.");
+                }
+                _users.Add(user);
+            }
         }
     }
 }
