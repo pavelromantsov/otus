@@ -12,7 +12,6 @@ namespace ConsoleBot.Core.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _repository;
-        private readonly List<ToDoUser> _users = new List<ToDoUser>();
 
         public UserService(IUserRepository repository)
         {
@@ -47,15 +46,11 @@ namespace ConsoleBot.Core.Services
             return _repository.GetUserByTelegramUserId(telegramUserId);
         }
 
-        public void Add(ToDoUser user) 
+        public ToDoUser Add(long telegramUserId, string telegramUserName) 
         {
-            {
-                if (_users.Any(u => u.UserId == user.UserId))
-                {
-                    throw new InvalidOperationException("Пользователь с таким идентификатором уже существует.");
-                }
-                _users.Add(user);
-            }
+            var newUser = new ToDoUser(telegramUserId, telegramUserName);
+            _repository.Add(newUser);
+            return newUser;
         }
     }
 }
