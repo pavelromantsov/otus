@@ -3,47 +3,58 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ConsoleBot.Core.DataAccess;
+using ConsoleBot.Core.Entities;
+using ConsoleBot.Core.Exceptions;
 
 
-namespace ConsoleBotCommands
+namespace ConsoleBot.Core.Services
 {
     public class ToDoService : IToDoService
     {
-        private readonly IList<ToDoItem> _tasks = new List<ToDoItem>();
+        private readonly IToDoRepository _repository;
+
+        public ToDoService(IToDoRepository repository)
+        { 
+            _repository = repository;
+        }
 
         public IReadOnlyList<ToDoItem> GetAllByUserId(Guid userId)
         {
-            return _tasks.Where(t => t.User.UserId == userId).ToList();
+            return _repository.GetAllByUserId(userId);
         }
 
         public IReadOnlyList<ToDoItem> GetActiveByUserId(Guid userId)
         {
-            return _tasks.Where(t => t.User.UserId == userId && t.State == ToDoItemState.Active).ToList();
+            return _repository.GetAllByUserId(userId);
         }
+
 
         public ToDoItem Add(ToDoUser user, string name)
         {
+            if (_repository.ExistsByName(user.UserId, name))
+            {
+                throw new DuplicateTaskException(name);
+            }
             var item = new ToDoItem(user, name);
-            _tasks.Add(item);
+            _repository.Add(item);
             return item;
         }
 
         public void MarkCompleted(Guid id)
         {
-            var task = _tasks.FirstOrDefault(t => t.Id == id);
+            var task = _repository.Get(id);
             if (task != null)
             {
                 task.State = ToDoItemState.Completed;
+                task.StateChangedAt = DateTime.Now;
+                _repository.Update(task);
             }
         }
 
         public void Delete(Guid id)
         {
-            var task = _tasks.FirstOrDefault(t => t.Id == id);
-            if (task != null)
-            {
-                _tasks.Remove(task);
-            }
+            _repository.Delete(id);
         }
 
         public int ParseAndValidateInt(string? str, int min, int max)
@@ -61,6 +72,23 @@ namespace ConsoleBotCommands
             {
                 throw new ArgumentException("Строка не должна быть пустой или содержать только пробелы");
             }
+        }
+        public IReadOnlyList<ToDoItem> Find(ToDoUser user, string namePrefix)
+        {
+            return _repository.Find(
+            user.UserId,
+            task => task.Name.StartsWith(namePrefix, StringComparison.OrdinalIgnoreCase)
+        );
+        }
+
+        public bool ExistsByName(Guid userId, string name)
+        {
+            return _repository.ExistsByName(userId, name);
+        }
+
+        public int CountActive(Guid userId)
+        {
+            return _repository.CountActive(userId);
         }
 
     }

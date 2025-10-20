@@ -1,25 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ConsoleBot.Core.Entities;
+using ConsoleBot.Core.Exceptions;
+using ConsoleBot.Core.Services;
+using ConsoleBotCommands;
 using Otus.ToDoList.ConsoleBot;
 using Otus.ToDoList.ConsoleBot.Types;
 
 
-namespace ConsoleBotCommands
+namespace ConsoleBot.TelegramBot
 {
-    public class UpdateHandler : IUpdateHandler, IToDoService
+    public class UpdateHandler : IUpdateHandler
     {
         private readonly ITelegramBotClient _botClient;
         private readonly IUserService _userService;
         private readonly IToDoService _toDoService;
+        private readonly IToDoReportService _toDoReportService;
 
-        public UpdateHandler(ITelegramBotClient botClient, IUserService userService, IToDoService toDoService)
+        public UpdateHandler(ITelegramBotClient botClient, IUserService userService, IToDoService toDoService, IToDoReportService toDoReportService)
         {
             _botClient = botClient;
             _userService = userService;
             _toDoService = toDoService;
+            _toDoReportService = toDoReportService;
 
         }
         public void HandleUpdateAsync(ITelegramBotClient botClient, Update update)
@@ -58,6 +59,12 @@ namespace ConsoleBotCommands
                     case "/removetask":
                         RemoveTaskCommand(_botClient, update, chatId, user, message.Text);
                         break;
+                    case "/report":
+                        ReportCommand(_botClient, update, chatId, user, _toDoReportService);
+                        break;
+                    case "/find":
+                        FindCommand(_botClient, update, chatId, user );
+                        break;
                     case "/help":
                         HelpCommand(_botClient, update, chatId, user);
                         break;
@@ -87,6 +94,8 @@ namespace ConsoleBotCommands
             botClient.SendMessage(update.Message.Chat, "/completetask - отметить задачу как завершенную");
             botClient.SendMessage(update.Message.Chat, "/showalltasks - показать все задачи");
             botClient.SendMessage(update.Message.Chat, "/removetask - удалить задачу из списка");
+            botClient.SendMessage(update.Message.Chat, "/report - отображение всех задач пользователя");
+            botClient.SendMessage(update.Message.Chat, "/find - поиск задачи");
             botClient.SendMessage(update.Message.Chat, "/help - справка по использованию");
             botClient.SendMessage(update.Message.Chat, "/info - информация о программе");
             botClient.SendMessage(update.Message.Chat, "/exit - завершение работы");
@@ -104,7 +113,7 @@ namespace ConsoleBotCommands
 
             //проверка на максимальную длину задачи
 
-            taskName = (string.Join("", taskName.Skip(9)));
+            taskName = string.Join("", taskName.Skip(9));
             var taskLength = taskName.Length.ToString();
             if (taskName.Length > _toDoService.ParseAndValidateInt(taskLength, 1, 100))
             {
@@ -200,13 +209,17 @@ namespace ConsoleBotCommands
                "/completetask - отметить задачу как выполненную\n" +
                "/showalltasks - показать все задачи\n" +
                "/removetask - удалить задачу\n" +
+               "/report - отображение всех задач пользователя\n" +
+               "/find - поиск задач пользователя\n" +
                "/help - помощь\n" +
                "/info - информация о программе");
         }
 
         private void InfoCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user)
         {
-            botClient.SendMessage(update.Message.Chat, $"Консольная версия бота для управления задачами, версия {Program.version}.\nСоздано {Program.created_date}, обновлено {Program.updated_date}.");
+            botClient.SendMessage(update.Message.Chat, $"Консольная версия бота для управления задачами, версия {Program.version}." +
+                $"\nСоздано {Program.created_date}, обновлено {Program.updated_date}." +
+                $"\nНовые функции: {Program.whatsNew_text}.");
         }
 
         public IReadOnlyList<ToDoItem> GetAllByUserId(Guid userId)
@@ -243,5 +256,42 @@ namespace ConsoleBotCommands
         {
             _toDoService.ValidateString(str);
         }
+
+        private void ReportCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, IToDoReportService toDoReportService)
+        {
+            var stats = _toDoReportService.GetUserStats(user.UserId);
+
+            var reportMessage =
+                $"Статистика по задачам на {stats.generatedAt:yyyy-MM-dd HH:mm:ss}:\n" +
+                $"Всего: {stats.total};\n" +
+                $"Завершенных: {stats.completed};\n" +
+                $"Активных: {stats.active};";
+
+            botClient.SendMessage(update.Message.Chat, reportMessage);
+        }
+        private void FindCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user)
+        {
+            var parts = update.Message.Text.Split(' ');
+            if (parts.Length < 2)
+            {
+                botClient.SendMessage(update.Message.Chat, "Формат команды: /find <префикс>");
+                return;
+            }
+
+            var namePrefix = parts[1];
+            var foundTasks = _toDoService.Find(user, namePrefix);
+
+            if (foundTasks.Any())
+            {
+                var output = string.Join("\n", foundTasks.Select((task, idx) =>
+                    $"{idx + 1}. {task.Name} - создана {task.CreatedAt}"));
+                botClient.SendMessage(update.Message.Chat, $"Найденные задачи:\n{output}");
+            }
+            else
+            {
+                botClient.SendMessage(update.Message.Chat, "Задачи не найдены.");
+            }
+        }
+
     }
 }
