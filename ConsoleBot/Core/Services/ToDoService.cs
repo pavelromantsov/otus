@@ -15,35 +15,35 @@ namespace ConsoleBot.Core.Services
         private readonly IToDoRepository _repository;
 
         public ToDoService(IToDoRepository repository)
-        { 
+        {
             _repository = repository;
         }
 
-        public IReadOnlyList<ToDoItem> GetAllByUserId(Guid userId)
+        public async Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(Guid userId, CancellationToken cancellationToken)
         {
-            return _repository.GetAllByUserId(userId);
+            return _repository.GetAllByUserId(userId, cancellationToken);
         }
 
-        public IReadOnlyList<ToDoItem> GetActiveByUserId(Guid userId)
+        public async Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken)
         {
-            return _repository.GetAllByUserId(userId);
+            return _repository.GetAllByUserId(userId, cancellationToken);
         }
 
 
-        public ToDoItem Add(ToDoUser user, string name)
+        public async Task<ToDoItem> AddAsync(ToDoUser user, string name, CancellationToken cancellationToken)
         {
             if (_repository.ExistsByName(user.UserId, name))
             {
                 throw new DuplicateTaskException(name);
             }
-            var item = new ToDoItem(user, name);
+            var item = new ToDoItem(user, name, cancellationToken);
             _repository.Add(item);
             return item;
         }
 
-        public void MarkCompleted(Guid id)
+        public async Task MarkCompletedAsync(Guid id, CancellationToken cancellationToken)
         {
-            var task = _repository.Get(id);
+            var task = _repository.Get(id, cancellationToken);
             if (task != null)
             {
                 task.State = ToDoItemState.Completed;
@@ -57,7 +57,7 @@ namespace ConsoleBot.Core.Services
             _repository.Delete(id);
         }
 
-        public int ParseAndValidateInt(string? str, int min, int max)
+        public int ParseAndValidateInt(string? str, int min, int max, CancellationToken cancellationToken)
         {
             if (int.TryParse(str, out int number) && number >= min && number <= max)
             {
@@ -66,19 +66,19 @@ namespace ConsoleBot.Core.Services
             throw new ArgumentException($"Значение должно быть числом от {min} до {max}.");
         }
 
-        public void ValidateString(string? str)
+        public async Task ValidateStringAsync(string? str, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(str))
             {
                 throw new ArgumentException("Строка не должна быть пустой или содержать только пробелы");
             }
         }
-        public IReadOnlyList<ToDoItem> Find(ToDoUser user, string namePrefix)
+        public async Task<IReadOnlyList<ToDoItem>> FindAsync(ToDoUser user, string namePrefix, CancellationToken cancellationToken)
         {
             return _repository.Find(
             user.UserId,
-            task => task.Name.StartsWith(namePrefix, StringComparison.OrdinalIgnoreCase)
-        );
+            task => task.Name.StartsWith(namePrefix, StringComparison.OrdinalIgnoreCase),
+            cancellationToken);
         }
 
         public bool ExistsByName(Guid userId, string name)
@@ -86,7 +86,7 @@ namespace ConsoleBot.Core.Services
             return _repository.ExistsByName(userId, name);
         }
 
-        public int CountActive(Guid userId)
+        public int CountActiveAsync(Guid userId)
         {
             return _repository.CountActive(userId);
         }
