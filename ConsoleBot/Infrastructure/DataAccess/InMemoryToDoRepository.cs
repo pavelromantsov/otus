@@ -11,18 +11,18 @@ namespace ConsoleBot.Infrastructure.DataAccess
     public class InMemoryToDoRepository : IToDoRepository
     {
         private readonly List<ToDoItem> _items = new List<ToDoItem>();
-
-        public IReadOnlyList<ToDoItem> GetAllByUserId(Guid userId)
+        
+        public IReadOnlyList<ToDoItem> GetAllByUserId(Guid userId, CancellationToken cancellationToken)
         {
-            return _items.Where(i => i.User.UserId == userId).ToList();
+           return _items.Where(i => i.User.UserId == userId).ToList();
         }
 
-        public IReadOnlyList<ToDoItem> GetActiveByUserId(Guid userId)
+        public IReadOnlyList<ToDoItem> GetActiveByUserId(Guid userId, CancellationToken cancellationToken)
         {
             return _items.Where(i => i.User.UserId == userId && i.State == ToDoItemState.Active).ToList();
         }
 
-        public ToDoItem? Get(Guid id)
+        public ToDoItem? Get(Guid id, CancellationToken cancellationToken)
         {
             return _items.FirstOrDefault(i => i.Id == id);
         }
@@ -62,7 +62,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
             return _items.Count(i => i.User.UserId == userId && i.State == ToDoItemState.Active);
         }
 
-        public IReadOnlyList<ToDoItem> Find(Guid userId, Func<ToDoItem, bool> predicate)
+        public IReadOnlyList<ToDoItem> Find(Guid userId, Func<ToDoItem, bool> predicate, CancellationToken cancellationToken)
         {
             return _items.Where(task => task.User.UserId == userId && predicate(task)).ToList();
         }

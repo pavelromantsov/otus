@@ -9,10 +9,10 @@ namespace ConsoleBot.Core.DataAccess
 {
     public interface IToDoRepository
     {
-        IReadOnlyList<ToDoItem> GetAllByUserId(Guid userId);
+        IReadOnlyList<ToDoItem> GetAllByUserId(Guid userId, CancellationToken cancellationToken);
         //Возвращает ToDoItem для UserId со статусом Active
-        IReadOnlyList<ToDoItem> GetActiveByUserId(Guid userId);
-        ToDoItem? Get(Guid id);
+        IReadOnlyList<ToDoItem> GetActiveByUserId(Guid userId, CancellationToken cancellationToken);
+        ToDoItem? Get(Guid id, CancellationToken cancellationToken);
         void Add(ToDoItem item);
         void Update(ToDoItem item);
         void Delete(Guid id);
@@ -20,7 +20,7 @@ namespace ConsoleBot.Core.DataAccess
         bool ExistsByName(Guid userId, string name);
         //Возвращает количество активных задач у пользователя
         int CountActive(Guid userId);
-        IReadOnlyList<ToDoItem> Find(Guid userId, Func<ToDoItem, bool> predicate);
+        IReadOnlyList<ToDoItem> Find(Guid userId, Func<ToDoItem, bool> predicate, CancellationToken cancellationToken);
 
     }
 }

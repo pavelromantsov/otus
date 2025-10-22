@@ -17,14 +17,20 @@ namespace ConsoleBot.Infrastructure.DataAccess
             _users.Add(user);
         }
 
-        public ToDoUser? GetUser(Guid userId)
+        public async Task<ToDoUser?> GetUserAsync(Guid userId, CancellationToken cancellationToken)
         {
             return _users.FirstOrDefault(u => u.UserId == userId);
         }
 
-        public ToDoUser? GetUserByTelegramUserId(long telegramUserId)
+        public async Task<ToDoUser?> GetUserAsync(long userId, CancellationToken cancellationToken)
+        {
+            return _users.FirstOrDefault(u => u.TelegramUserId == userId);
+        }
+
+        public async Task <ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, CancellationToken cancellationToken)
         {
             return _users.FirstOrDefault(u => u.TelegramUserId == telegramUserId);
         }
+
     }
 }
