@@ -33,6 +33,8 @@ namespace ConsoleBot.TelegramBot
             _toDoService = toDoService;
             _toDoReportService = toDoReportService;
 
+            OnHandleUpdateStarted += (message) => Console.WriteLine($"Началась обработка сообщения '{message}'");
+            OnHandleUpdateCompleted += (message) => Console.WriteLine($"Закончилась обработка сообщения '{message}'");
         }
         
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
