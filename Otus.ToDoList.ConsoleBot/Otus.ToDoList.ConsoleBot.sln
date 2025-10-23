@@ -1,11 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35913.81 d17.13
+VisualStudioVersion = 17.13.35913.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Otus.ToDoList.ConsoleBot", "Otus.ToDoList.ConsoleBot.csproj", "{46157B47-B192-AC45-5818-8AB9F2FAF995}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleBot", "..\ConsoleBot\ConsoleBot.csproj", "{72183996-26B0-4CB8-8D7B-192A9F42AE7D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8EF1F17E-1DE9-179F-A46A-A7817427985F} = {8EF1F17E-1DE9-179F-A46A-A7817427985F}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Otus.ToDoList.ConsoleBot", "..\..\HW\C-Sharp-Basic\Homeworks\07 Асинхронность, делегаты и события\Otus.ToDoList.ConsoleBot\Otus.ToDoList.ConsoleBot.csproj", "{8EF1F17E-1DE9-179F-A46A-A7817427985F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +16,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{46157B47-B192-AC45-5818-8AB9F2FAF995}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{46157B47-B192-AC45-5818-8AB9F2FAF995}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{46157B47-B192-AC45-5818-8AB9F2FAF995}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{46157B47-B192-AC45-5818-8AB9F2FAF995}.Release|Any CPU.Build.0 = Release|Any CPU
 		{72183996-26B0-4CB8-8D7B-192A9F42AE7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{72183996-26B0-4CB8-8D7B-192A9F42AE7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72183996-26B0-4CB8-8D7B-192A9F42AE7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72183996-26B0-4CB8-8D7B-192A9F42AE7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EF1F17E-1DE9-179F-A46A-A7817427985F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EF1F17E-1DE9-179F-A46A-A7817427985F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EF1F17E-1DE9-179F-A46A-A7817427985F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EF1F17E-1DE9-179F-A46A-A7817427985F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
