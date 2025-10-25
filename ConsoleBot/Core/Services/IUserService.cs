@@ -9,7 +9,9 @@ namespace ConsoleBot.Core.Services
 {
     public interface IUserService
     {
-        ToDoUser RegisterUser(long telegramUserId, string telegramUserName);
-        ToDoUser? GetUser(long telegramUserId);
+        Task<ToDoUser?> GetUserAsync(Guid userId, CancellationToken cancellationToken);
+        Task<ToDoUser?>? GetUserAsync(long userId, CancellationToken cancellationToken);
+        Task<ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, CancellationToken cancellationToken);
+        Task RegisterUserAsync(long telegramUserId, string telegramUserName, CancellationToken cancellationToken);
     }
 }

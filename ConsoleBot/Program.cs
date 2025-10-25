@@ -8,15 +8,15 @@ using ConsoleBot.TelegramBot;
 using Otus.ToDoList.ConsoleBot;
 using ConsoleBot.Infrastructure.DataAccess;
 
-namespace ConsoleBotCommands
+namespace ConsoleBot
 {
     class Program
     {
         public static ToDoUser? currentUser = null;
-        public const string version = "3.0";
+        public const string version = "4.0";
         public const string created_date = "20-08-2025";
-        public const string updated_date = "09-10-2025";
-        public const string whatsNew_text = "Реализован репозиторий, добавлен поиск задач";
+        public const string updated_date = "20-10-2025";
+        public const string whatsNew_text = "Асинхронное выполнение";
         public static List<ToDoItem> tasks = new List<ToDoItem>();
 
         public static void Main(string[] args)
@@ -30,8 +30,9 @@ namespace ConsoleBotCommands
                 var todoReportService = new ToDoReportService(inMemoryTodoRepository);
                 var botClient = new ConsoleBotClient();
                 var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService);
-                botClient.StartReceiving(updateHandler);
-                Task.Delay(0);
+                var cts = new CancellationTokenSource();
+                botClient.StartReceiving(updateHandler, cts.Token);
+                Task.Delay(1000);
             }
             catch (Exception ex)
             {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ConsoleBot.Core.Entities
+﻿namespace ConsoleBot.Core.Entities
 {
     public class ToDoItem
     {
@@ -15,7 +9,7 @@ namespace ConsoleBot.Core.Entities
         public ToDoItemState State { get; set; }
         public DateTime? StateChangedAt { get; set; }
 
-        public ToDoItem(ToDoUser user, string name)
+        public ToDoItem(ToDoUser user, string name, CancellationToken cancellationToken)
         {
             Id = Guid.NewGuid();
             User = user;
