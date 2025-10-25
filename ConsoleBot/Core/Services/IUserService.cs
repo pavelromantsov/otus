@@ -13,5 +13,6 @@ namespace ConsoleBot.Core.Services
         Task<ToDoUser?>? GetUserAsync(long userId, CancellationToken cancellationToken);
         Task<ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, CancellationToken cancellationToken);
         Task RegisterUserAsync(long telegramUserId, string telegramUserName, CancellationToken cancellationToken);
+        bool IsUserRegistered(long userId, CancellationToken cancellationToken);
     }
 }

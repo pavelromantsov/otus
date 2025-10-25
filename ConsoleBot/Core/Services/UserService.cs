@@ -1,6 +1,5 @@
 ﻿using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
-using Otus.ToDoList.ConsoleBot.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,5 +50,10 @@ namespace ConsoleBot.Core.Services
         {
             return await _repository.GetUserAsync(userId, cancellationToken);
         }
+        public bool IsUserRegistered(long userId, CancellationToken cancellationToken)
+        {
+            return _repository.GetUserByTelegramUserIdAsync(userId, cancellationToken) != null;
+        }
+
     }
 }
