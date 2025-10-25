@@ -21,11 +21,7 @@ namespace ConsoleBot
         public const string created_date = "20-08-2025";
         public const string updated_date = "23-10-2025";
         public const string whatsNew_text = "Переход на Телеграм";
-        //private static readonly TelegramBotClientOptions telegramApiKey;
         public static List<ToDoItem> tasks = new List<ToDoItem>();
-
-
-        //private static readonly string BotToken = "8049971945:AAGApOjkTP-u1dZd04EtEKLCX7SFrgk6Sz0";
 
         public static async Task Main()
         {
@@ -34,15 +30,12 @@ namespace ConsoleBot
                 var configuration = new ConfigurationBuilder()
                     .AddJsonFile("appsettings.json", true, true).Build();
                 string botKey = configuration.GetSection("Telegram_key").Value;
-               // _botKey = appsettings.GetValue<string>("Telegram_key");
-
                 var inMemoryUserRepository = new InMemoryUserRepository();
                 var inMemoryTodoRepository = new InMemoryToDoRepository();
                 var userService = new UserService(inMemoryUserRepository);
                 var todoService = new ToDoService(inMemoryTodoRepository);
                 var todoReportService = new ToDoReportService(inMemoryTodoRepository);
                 var botClient = new TelegramBotClient(botKey);
-                
                 var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService);
                 var cts = new CancellationTokenSource();
                 var receiverOptions = new ReceiverOptions
