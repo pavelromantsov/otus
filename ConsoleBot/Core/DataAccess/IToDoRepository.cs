@@ -9,18 +9,17 @@ namespace ConsoleBot.Core.DataAccess
 {
     public interface IToDoRepository
     {
-        IReadOnlyList<ToDoItem> GetAllByUserId(Guid userId, CancellationToken cancellationToken);
+        Task <IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(long telegramUserId, CancellationToken cancellationToken);
         //Возвращает ToDoItem для UserId со статусом Active
-        IReadOnlyList<ToDoItem> GetActiveByUserId(Guid userId, CancellationToken cancellationToken);
-        ToDoItem? Get(Guid id, CancellationToken cancellationToken);
-        void Add(ToDoItem item);
-        void Update(ToDoItem item);
-        void Delete(Guid id);
+        Task <IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(long telegramUserId, CancellationToken cancellationToken);
+        Task AddAsync(ToDoItem item, CancellationToken cancellationToken);
+        Task UpdateAsync(ToDoItem item, CancellationToken cancellationToken);
+        Task Delete(Guid id, CancellationToken cancellationToken);
         //Проверяет есть ли задача с таким именем у пользователя
-        bool ExistsByName(Guid userId, string name);
+        Task<bool>ExistsByNameAsync(long telegramUserId, string name, CancellationToken cancellationToken);
         //Возвращает количество активных задач у пользователя
-        int CountActive(Guid userId);
-        IReadOnlyList<ToDoItem> Find(Guid userId, Func<ToDoItem, bool> predicate, CancellationToken cancellationToken);
-
+        Task<int> CountActiveAsync(long telegramUserId, CancellationToken cancellationToken);
+        Task<IReadOnlyList<ToDoItem>> Find(long telegramUserId, Func<ToDoItem, bool> predicate, CancellationToken cancellationToken);
+        Task<ToDoItem> GetAsync(long telegramUserId, Guid userId, CancellationToken cancellationToken);
     }
 }

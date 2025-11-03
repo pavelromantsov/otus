@@ -20,39 +20,40 @@ namespace ConsoleBot.Core.Services
 
         public async Task RegisterUserAsync(long telegramUserId, string telegramUserName, CancellationToken cancellationToken)
         {
-            var existingUser = await _repository.GetUserByTelegramUserIdAsync(telegramUserId, cancellationToken);
+            var existingUser = await _repository.GetUserByTelegramUserIdAsync(telegramUserId, telegramUserName, cancellationToken);
             if (existingUser != null)
             {
                 return;
             }
             var newUser = new ToDoUser(telegramUserId, telegramUserName, cancellationToken);
-            _repository.Add(newUser);
+            await _repository.AddAsync(newUser, cancellationToken);
         }
 
-        public async Task<ToDoUser?> GetUserAsync(Guid userId, CancellationToken cancellationToken)
+        public async Task<ToDoUser?> GetUserAsync(Guid userId, string telagramUserName, CancellationToken cancellationToken)
         {
-            return await _repository.GetUserAsync(userId, cancellationToken);
+            return await _repository.GetUserAsync(userId, telagramUserName, cancellationToken);
         }
 
-        public async Task<ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, CancellationToken cancellationToken)
+        public async Task<ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, string telegramUserName,  CancellationToken cancellationToken)
         {
-            return await _repository.GetUserByTelegramUserIdAsync(telegramUserId, cancellationToken);
+            return await _repository.GetUserByTelegramUserIdAsync(telegramUserId, telegramUserName, cancellationToken);
         }
 
         public ToDoUser? Add(long telegramUserId, string telegramUserName, CancellationToken cancellationToken) 
         {
             var newUser = new ToDoUser(telegramUserId, telegramUserName, cancellationToken);
-            _repository.Add(newUser);
+            _repository.AddAsync(newUser, cancellationToken);
             return newUser;
         }
 
-        public async Task<ToDoUser?>? GetUserAsync(long userId, CancellationToken cancellationToken)
+        public async Task<ToDoUser?>? GetUserAsync(long userId, string telagramUserName, CancellationToken cancellationToken)
         {
-            return await _repository.GetUserAsync(userId, cancellationToken);
+            return await _repository.GetUserAsync(userId, telagramUserName,cancellationToken);
         }
-        public bool IsUserRegistered(long userId, CancellationToken cancellationToken)
+        public async Task <bool> IsUserRegistered(long telegramUserId, string telegramUserName, CancellationToken cancellationToken)
         {
-            return _repository.GetUserByTelegramUserIdAsync(userId, cancellationToken) != null;
+            var user = await _repository.GetUserByTelegramUserIdAsync(telegramUserId, telegramUserName, cancellationToken);
+            return user != null;
         }
 
     }

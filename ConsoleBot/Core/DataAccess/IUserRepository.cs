@@ -10,9 +10,9 @@ namespace ConsoleBot.Core.DataAccess
 {
     public interface IUserRepository
     {
-        Task <ToDoUser?> GetUserAsync(Guid userId, CancellationToken cancellationToken);
-        Task <ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, CancellationToken cancellationToken);
-        void Add(ToDoUser user);
-        Task<ToDoUser?> GetUserAsync(long userId, CancellationToken cancellationToken);
+        Task <ToDoUser?> GetUserAsync(Guid userId, string telagramUserName,CancellationToken cancellationToken);
+        Task <ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, string telegramUserName, CancellationToken cancellationToken);
+        Task AddAsync(ToDoUser user, CancellationToken cancellationToken);
+        Task<ToDoUser?> GetUserAsync(long userId, string telagramUserName,CancellationToken cancellationToken);
     }
 }

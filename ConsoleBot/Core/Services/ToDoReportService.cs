@@ -19,9 +19,9 @@ namespace ConsoleBot.Core.Services
             _todoRepository = todoRepository;
         }
 
-        public async Task< (int total, int completed, int active, DateTime generatedAt)> GetUserStatsAsync(Guid userId, CancellationToken cancellationToken)
+        public async Task< (int total, int completed, int active, DateTime generatedAt)> GetUserStatsAsync(long telegramUserId, CancellationToken cancellationToken)
         {
-            var allTasks = _todoRepository.GetAllByUserId(userId, cancellationToken);
+            var allTasks = await _todoRepository.GetAllByUserIdAsync(telegramUserId, cancellationToken);
             var total = allTasks.Count;
             var completed = allTasks.Count(t => t.State == ToDoItemState.Completed);
             var active = allTasks.Count(t => t.State == ToDoItemState.Active);

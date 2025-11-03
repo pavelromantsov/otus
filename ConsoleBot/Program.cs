@@ -17,10 +17,10 @@ namespace ConsoleBot
     class Program
     {
         public static ToDoUser? currentUser = null;
-        public const string version = "5.0";
+        public const string version = "5.1";
         public const string created_date = "20-08-2025";
-        public const string updated_date = "23-10-2025";
-        public const string whatsNew_text = "Переход на Телеграм";
+        public const string updated_date = "03-11-2025";
+        public const string whatsNew_text = "Переход с InMemmory на хранение в файлах, индексирование задач";
         public static List<ToDoItem> tasks = new List<ToDoItem>();
 
         public static async Task Main()
@@ -30,11 +30,11 @@ namespace ConsoleBot
                 var configuration = new ConfigurationBuilder()
                     .AddJsonFile("appsettings.json", true, true).Build();
                 string botKey = configuration.GetSection("Telegram_key").Value;
-                var inMemoryUserRepository = new InMemoryUserRepository();
-                var inMemoryTodoRepository = new InMemoryToDoRepository();
-                var userService = new UserService(inMemoryUserRepository);
-                var todoService = new ToDoService(inMemoryTodoRepository);
-                var todoReportService = new ToDoReportService(inMemoryTodoRepository);
+                var userRepo = new FileUserRepository("data/users");
+                var todoRepo = new FileToDoRepository("data/todos");
+                var userService = new UserService(userRepo);
+                var todoService = new ToDoService(todoRepo);
+                var todoReportService = new ToDoReportService(todoRepo);
                 var botClient = new TelegramBotClient(botKey);
                 var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService);
                 var cts = new CancellationTokenSource();

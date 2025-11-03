@@ -1,8 +1,7 @@
-﻿using System.ComponentModel.Design;
-using System.Runtime.CompilerServices;
-using ConsoleBot.Core.Entities;
+﻿using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Exceptions;
 using ConsoleBot.Core.Services;
+using Microsoft.Graph.Models;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -18,6 +17,8 @@ namespace ConsoleBot.TelegramBot
         private readonly IUserService _userService;
         private readonly IToDoService _toDoService;
         private readonly IToDoReportService _toDoReportService;
+        private readonly string telegramUserName;
+
         public delegate void MessageEventHandler(string message);
         public event MessageEventHandler? OnHandleUpdateStarted;
         public event MessageEventHandler? OnHandleUpdateCompleted;
@@ -35,11 +36,11 @@ namespace ConsoleBot.TelegramBot
             OnHandleUpdateStarted += (message) => Console.WriteLine($"Началась обработка сообщения '{message}'");
             OnHandleUpdateCompleted += (message) => Console.WriteLine($"Закончилась обработка сообщения '{message}'");
         }
-        
+
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             OnHandleUpdateStarted?.Invoke(update.Message.Text);
-            
+
             try
             {
                 // Обработка обновления
@@ -51,7 +52,7 @@ namespace ConsoleBot.TelegramBot
             }
 
             try
-            {             
+            {
                 var message = update.Message;
                 if (message == null)
                     return;
@@ -60,14 +61,14 @@ namespace ConsoleBot.TelegramBot
                 var chatId = message.Chat.Id;
                 var command = message.Text.Split(' ').First();
 
-                var user = await _userService.GetUserAsync(message.From.Id, cancellationToken);
-                var keyboard = CreateKeyboard(message.From.Id, cancellationToken);
-               
-                
+                var user = await _userService.GetUserAsync(message.From.Id, message.From.FirstName, cancellationToken);
+                var keyboard = CreateKeyboard(message.From.Id, message.From.FirstName, cancellationToken);
+
+
                 if (user == null)
                 {
-                   await _userService.RegisterUserAsync(message.From.Id, message.From.Username, cancellationToken);
-                   user = await _userService.GetUserAsync(message.From.Id, cancellationToken);
+                    await _userService.RegisterUserAsync(message.From.Id, message.From.FirstName, cancellationToken);
+                    user = await _userService.GetUserAsync(message.From.Id, message.From.FirstName, cancellationToken);
                 }
                 switch (command)
                 {
@@ -131,8 +132,6 @@ namespace ConsoleBot.TelegramBot
             await botClient.SendMessage(update.Message.Chat, "/find - поиск задачи");
             await botClient.SendMessage(update.Message.Chat, "/help - справка по использованию");
             await botClient.SendMessage(update.Message.Chat, "/info - информация о программе");
-            //await botClient.SendMessage(update.Message.Chat, "/exit - завершение работы");
-
         }
 
         private async Task AddTaskCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, string message, CancellationToken cancellationToken)
@@ -158,7 +157,7 @@ namespace ConsoleBot.TelegramBot
             var tasks = message.Split(' ');
             if (int.TryParse(tasks[1], out var taskIndex))
             {
-                var allTasks = await _toDoService.GetAllByUserIdAsync(user.UserId, cancellationToken);
+                var allTasks = await _toDoService.GetAllByUserIdAsync(user.TelegramUserId, cancellationToken);
                 var _task = allTasks.ElementAt(taskIndex - 1);
 
                 if (allTasks.Count >= 100)
@@ -167,7 +166,7 @@ namespace ConsoleBot.TelegramBot
                 }
             }
             // Проверка на дубликаты
-            if ((await _toDoService.GetAllByUserIdAsync(user.UserId, cancellationToken)).Any(t => t.Name == taskName))
+            if ((await _toDoService.GetAllByUserIdAsync(user.TelegramUserId, cancellationToken)).Any(t => t.Name == taskName))
             {
                 await botClient.SendMessage(update.Message.Chat, $"Задача с названием '{taskName}' уже существует.");
                 return;
@@ -179,15 +178,15 @@ namespace ConsoleBot.TelegramBot
 
         public async Task ShowTasksCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, CancellationToken cancellationToken)
         {
-            var tasks = await _toDoService.GetAllByUserIdAsync(user.UserId, cancellationToken);
-            if (tasks.Count >0)
+            var tasks = await _toDoService.GetActiveByUserIdAsync(user.TelegramUserId, cancellationToken);
+            if (tasks.Count > 0)
             {
                 var output = string.Join("\n", tasks.Select(t => $"Задача `{t.Id}`: {t.Name} - создана {t.CreatedAt}"));
                 await botClient.SendMessage(update.Message.Chat, output);
             }
             else
             {
-                await botClient.SendMessage(update.Message.Chat, "Задач нет");
+                await botClient.SendMessage(update.Message.Chat, "Активных задач нет");
             }
         }
 
@@ -196,9 +195,9 @@ namespace ConsoleBot.TelegramBot
             var parts = message.Split(' ');
             if (int.TryParse(parts[1], out var taskIndex))
             {
-                var allTasks = await _toDoService.GetAllByUserIdAsync(user.UserId, cancellationToken);
+                var allTasks = await _toDoService.GetAllByUserIdAsync(user.TelegramUserId, cancellationToken);
                 var task = allTasks.ElementAt(taskIndex - 1);
-                await _toDoService.MarkCompletedAsync(task.Id, cancellationToken);
+                await _toDoService.MarkCompletedAsync(user.TelegramUserId, task.Id, cancellationToken);
                 await botClient.SendMessage(update.Message.Chat, $"Задача с номером '{taskIndex}' отмечена как выполненная.");
             }
             else
@@ -208,7 +207,7 @@ namespace ConsoleBot.TelegramBot
         }
         public async Task ShowAllTasksCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, string command, CancellationToken cancellationToken)
         {
-            var allTasks = await _toDoService.GetAllByUserIdAsync(user.UserId, cancellationToken);
+            var allTasks = await _toDoService.GetAllByUserIdAsync(user.TelegramUserId, cancellationToken);
             if (allTasks.Any())
             {
                 var output = string.Join(Environment.NewLine, allTasks.Select((t, i) =>
@@ -229,11 +228,11 @@ namespace ConsoleBot.TelegramBot
                 return;
             }
 
-            var allTasks = await _toDoService.GetAllByUserIdAsync(user.UserId, cancellationToken);
+            var allTasks = await _toDoService.GetAllByUserIdAsync(user.TelegramUserId, cancellationToken);
             if (taskIndex > 0 && taskIndex <= allTasks.Count)
             {
                 var task = allTasks.ElementAt(taskIndex - 1);
-                _toDoService.Delete(task.Id);
+                _toDoService.Delete(task.Id, cancellationToken);
                 await botClient.SendMessage(update.Message.Chat, $"Задача #{taskIndex} удалена.");
             }
             else
@@ -263,29 +262,29 @@ namespace ConsoleBot.TelegramBot
                 $"\nНовые функции: {Program.whatsNew_text}.");
         }
 
-        public async Task <IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(long telegramUserId, CancellationToken cancellationToken)
         {
-            return await _toDoService.GetAllByUserIdAsync(userId, cancellationToken);
+            return await _toDoService.GetAllByUserIdAsync(telegramUserId, cancellationToken);
         }
 
-        public async Task <IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(long telegramUserId, CancellationToken cancellationToken)
         {
-            return await _toDoService.GetActiveByUserIdAsync(userId, cancellationToken);
+            return await _toDoService.GetActiveByUserIdAsync(telegramUserId, cancellationToken);
         }
 
-        public async Task <ToDoItem> AddAsync(ToDoUser user, string name, CancellationToken cancellationToken)
+        public async Task<ToDoItem> AddAsync(ToDoUser user, string name, CancellationToken cancellationToken)
         {
             return await _toDoService.AddAsync(user, name, cancellationToken);
-        }   
+        }
 
-        public async Task MarkCompletedAsync(Guid id, CancellationToken cancellationToken)
+        public async Task MarkCompletedAsync(long telegramUserId, Guid id, CancellationToken cancellationToken)
         {
-            await _toDoService.MarkCompletedAsync(id, cancellationToken);
+            await _toDoService.MarkCompletedAsync(telegramUserId, id, cancellationToken);
         }
 
         public void Delete(Guid id, CancellationToken cancellationToken)
         {
-            _toDoService.Delete(id);
+            _toDoService.Delete(id, cancellationToken);
         }
 
         public int ParseAndValidateInt(string? str, int min, int max, CancellationToken cancellationToken)
@@ -300,7 +299,7 @@ namespace ConsoleBot.TelegramBot
 
         private async Task ReportCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, IToDoReportService toDoReportService, CancellationToken cancellationToken)
         {
-            var stats = await _toDoReportService.GetUserStatsAsync(user.UserId, cancellationToken);
+            var stats = await _toDoReportService.GetUserStatsAsync(user.TelegramUserId, cancellationToken);
 
             var reportMessage =
                 $"Статистика по задачам на {stats.generatedAt:yyyy-MM-dd HH:mm:ss}:\n" +
@@ -334,11 +333,10 @@ namespace ConsoleBot.TelegramBot
             }
         }
 
-        private ReplyKeyboardMarkup CreateKeyboard(long telegramUserId, CancellationToken cancellationToken)
+        private async Task <ReplyKeyboardMarkup> CreateKeyboard(long telegramUserId, string telegramUserName, CancellationToken cancellationToken)
         {
             // Проверяем регистрацию пользователя
-            var registered =_userService.IsUserRegistered(telegramUserId, cancellationToken);
-            var isRegistered = _userService.IsUserRegistered(telegramUserId, cancellationToken);
+            var isRegistered = await _userService.IsUserRegistered(telegramUserId, telegramUserName, cancellationToken);
 
             var buttons = isRegistered ?
             ["/showalltasks", "/showtasks", "/report"] :
@@ -346,16 +344,7 @@ namespace ConsoleBot.TelegramBot
 
             return new ReplyKeyboardMarkup(buttons);
         }
-        private ReplyMarkup? GenerateKeyboard(long telegramUserId, CancellationToken cancellationToken)
-        {
-            var isRegistered = _userService.IsUserRegistered(telegramUserId, cancellationToken);
 
-            var buttons = isRegistered ?
-            ["/showalltasks", "/showtasks", "/report"] :
-            new KeyboardButton[] { "/start" };
-
-        return new ReplyKeyboardMarkup(buttons);
-        }
 
 
 

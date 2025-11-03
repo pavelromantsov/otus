@@ -12,6 +12,7 @@ namespace ConsoleBot.Core.Entities
         public string TelegramUserName { get; set; }
         public DateTime RegisteredAt { get; set; }
         public long TelegramUserId { get; set; }
+        public ToDoUser() { }
         public ToDoUser(long telegramUserId, string telegramUserName, CancellationToken cancellationToken)
         {
             UserId = Guid.NewGuid();
