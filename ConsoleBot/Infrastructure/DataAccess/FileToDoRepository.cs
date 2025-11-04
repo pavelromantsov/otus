@@ -19,7 +19,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
     {
         private readonly string _baseDirectory;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // разрешаем только одному потоку читать/писать одновременно
-        private readonly ConcurrentDictionary<Guid, long> _index;
+        private readonly ConcurrentDictionary<Guid, Guid> _index;
 
 
         // Key: ToDoItemId, Value: UserId
@@ -31,14 +31,14 @@ namespace ConsoleBot.Infrastructure.DataAccess
             Directory.CreateDirectory(baseDirectory); // Создаем директорию, если её нет
             _index = LoadIndex();
         }
-        private ConcurrentDictionary<Guid, long> LoadIndex()
+        private ConcurrentDictionary<Guid, Guid> LoadIndex()
         {
             var indexFilePath = Path.Combine(_baseDirectory, "index.json");
             if (!File.Exists(indexFilePath))
-                return new ConcurrentDictionary<Guid, long>();
+                return new ConcurrentDictionary<Guid, Guid>();
 
             var content = File.ReadAllText(indexFilePath);
-            return JsonSerializer.Deserialize<ConcurrentDictionary<Guid, long>>(content)!;            
+            return JsonSerializer.Deserialize<ConcurrentDictionary<Guid, Guid>>(content)!;            
         }
         // Сохранение индекса в файл
         private void SaveIndex()
@@ -51,12 +51,12 @@ namespace ConsoleBot.Infrastructure.DataAccess
             }
         }
         // Возвращает все задачи пользователя
-        public async Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(long telegramUserId, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(Guid userId, CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync(cancellationToken); // ждём освобождения семафора
             try
             {
-                var directory = Path.Combine(_baseDirectory, telegramUserId.ToString());
+                var directory = Path.Combine(_baseDirectory, userId.ToString());
                 if (!Directory.Exists(directory))
                     return Array.Empty<ToDoItem>();
 
@@ -73,14 +73,14 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
 
         // Возвращает активную задачу пользователя
-        public async Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(long telegramUserId, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken)
         {
-                    var allTasks = await GetAllByUserIdAsync(telegramUserId, cancellationToken);
+                    var allTasks = await GetAllByUserIdAsync(userId, cancellationToken);
                     return allTasks.Where(t => t.State == ToDoItemState.Active).ToList();
         }
 
         // Возвращает задачу по ID
-        public async Task<ToDoItem?> GetAsync(long telgramUserId,Guid id, CancellationToken cancellationToken)
+        public async Task<ToDoItem?> GetAsync(Guid userId, Guid id, CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync(cancellationToken); // ждём освобождения семафора
             try
@@ -104,12 +104,12 @@ namespace ConsoleBot.Infrastructure.DataAccess
         public async Task AddAsync(ToDoItem item, CancellationToken cancellationToken)
         {
 
-                var directory = Path.Combine(_baseDirectory, item.User.TelegramUserId.ToString());
+                var directory = Path.Combine(_baseDirectory, item.User.UserId.ToString());
                 Directory.CreateDirectory(directory); // Создаем папку пользователя, если её нет
                 var filePath = Path.Combine(directory, $"{item.Id}.json");
                 var serializedData = JsonSerializer.Serialize(item);
                 await File.WriteAllTextAsync(filePath, serializedData, cancellationToken);
-                _index[item.Id] = item.User.TelegramUserId;
+                _index[item.Id] = item.User.UserId;
                 SaveIndex();
         }
 
@@ -136,23 +136,23 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
 
         // Проверяет, существует ли задача с таким именем у пользователя
-        public async Task<bool> ExistsByNameAsync(long telegramUserId, string name, CancellationToken cancellationToken)
+        public async Task<bool> ExistsByNameAsync(Guid userId, string name, CancellationToken cancellationToken)
         {
-            var tasks = await GetAllByUserIdAsync(telegramUserId, cancellationToken);
+            var tasks = await GetAllByUserIdAsync(userId, cancellationToken);
             return tasks.Any(t => t.Name == name);
         }
 
         // Количество активных задач пользователя
-        public async Task<int> CountActiveAsync(long telegramUserId, CancellationToken cancellationToken)
+        public async Task<int> CountActiveAsync(Guid userId, CancellationToken cancellationToken)
         {
-            var tasks = await GetAllByUserIdAsync(telegramUserId, cancellationToken);
+            var tasks = await GetAllByUserIdAsync(userId, cancellationToken);
             return tasks.Count(t => t.State == ToDoItemState.Active);
         }
 
-        public async Task<IReadOnlyList<ToDoItem>> Find(long telegramUserId, Func<ToDoItem, bool> predicate, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> Find(Guid userId, Func<ToDoItem, bool> predicate, CancellationToken cancellationToken)
         {
-            var tasks = await GetAllByUserIdAsync(telegramUserId, cancellationToken);
-            return tasks.Where(task => task.User.TelegramUserId == telegramUserId && predicate(task)).ToList();
+            var tasks = await GetAllByUserIdAsync(userId, cancellationToken);
+            return tasks.Where(task => task.User.UserId == userId && predicate(task)).ToList();
         }
     }
 

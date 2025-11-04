@@ -17,9 +17,9 @@ namespace ConsoleBot.Core.Services
         Task Delete(Guid id, CancellationToken cancellationToken);
         Task <bool>ExistsByNameAsync(ToDoUser user, string name, CancellationToken cancellationToken);
         Task<IReadOnlyList<ToDoItem>> FindAsync(ToDoUser user, string namePrefix, CancellationToken cancellationToken);
-        Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(long telegramUserId, CancellationToken cancellationToken);
-        Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(long telegramUserId, CancellationToken cancellationToken);
-        Task MarkCompletedAsync(long telegramUserId, Guid id, CancellationToken cancellationToken);
+        Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+        Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(Guid userId, CancellationToken cancellationToken);
+        Task MarkCompletedAsync(Guid userId, Guid id, CancellationToken cancellationToken);
         int ParseAndValidateInt(string? str, int min, int max, CancellationToken cancellationToken);
         Task ValidateStringAsync(string? str, CancellationToken cancellationToken);
     }

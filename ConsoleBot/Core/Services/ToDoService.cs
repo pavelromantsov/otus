@@ -20,20 +20,20 @@ namespace ConsoleBot.Core.Services
             _repository = repository;
         }
 
-        public async Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(long telegramUserId, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(Guid userId, CancellationToken cancellationToken)
         {
-            return await _repository.GetAllByUserIdAsync(telegramUserId, cancellationToken);
+            return await _repository.GetAllByUserIdAsync(userId, cancellationToken);
         }
 
-        public async Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(long telegramUserId, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken)
         {
-            return await _repository.GetActiveByUserIdAsync(telegramUserId, cancellationToken);
+            return await _repository.GetActiveByUserIdAsync(userId, cancellationToken);
         }
 
 
         public async Task<ToDoItem> AddAsync(ToDoUser user, string name, CancellationToken cancellationToken)
         {
-            if (await _repository.ExistsByNameAsync(user.TelegramUserId, name, cancellationToken))
+            if (await _repository.ExistsByNameAsync(user.UserId, name, cancellationToken))
             {
                 throw new DuplicateTaskException(name);
             }
@@ -42,10 +42,10 @@ namespace ConsoleBot.Core.Services
             return item;
         }
 
-        public async Task MarkCompletedAsync(long telegramUserId, Guid userId, CancellationToken cancellationToken)
+        public async Task MarkCompletedAsync(Guid userId, Guid id, CancellationToken cancellationToken)
         {
          
-            var task = await _repository.GetAsync(telegramUserId, userId, cancellationToken);
+            var task = await _repository.GetAsync(userId, id, cancellationToken);
             if (task != null)
             {   
                 task.State = ToDoItemState.Completed;
@@ -78,19 +78,19 @@ namespace ConsoleBot.Core.Services
         public async Task<IReadOnlyList<ToDoItem>> FindAsync(ToDoUser user, string namePrefix, CancellationToken cancellationToken)
         {
             return await _repository.Find(
-            user.TelegramUserId,
+            user.UserId,
             task => task.Name.StartsWith(namePrefix, StringComparison.OrdinalIgnoreCase),
             cancellationToken);
         }
 
         public async Task<bool>ExistsByNameAsync(ToDoUser user, string name, CancellationToken cancellationToken)
         {
-            return await _repository.ExistsByNameAsync(user.TelegramUserId, name, cancellationToken);
+            return await _repository.ExistsByNameAsync(user.UserId, name, cancellationToken);
         }
 
         public async Task<int>CountActiveAsync(ToDoUser user, CancellationToken cancellationToken)
         {
-            return await _repository.CountActiveAsync(user.TelegramUserId, cancellationToken);
+            return await _repository.CountActiveAsync(user.UserId, cancellationToken);
         }
 
     }

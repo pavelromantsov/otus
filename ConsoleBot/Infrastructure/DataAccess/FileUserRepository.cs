@@ -49,9 +49,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
         // Вернуть всех пользователей
         public async Task<List<ToDoUser>> GetAllUsersAsync(long telegramUserId, CancellationToken cancellationToken)
         {
-            await _semaphore.WaitAsync(cancellationToken);
-            try
-            {
+
                 var files = Directory.EnumerateFiles(_baseDirectory, "*.json");
                 var result =await Task.WhenAll(files.Select(async f =>
                 {
@@ -59,16 +57,16 @@ namespace ConsoleBot.Infrastructure.DataAccess
                     return JsonSerializer.Deserialize<ToDoUser>(content)!;
                 }));
                 return result.ToList();
-            }
-            finally { _semaphore.Release(); }
+
         }
 
         public async Task<ToDoUser?> GetUserAsync(long userId, string telegramUserName, CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync(cancellationToken);
             try
-            { 
-                var filePath = Path.Combine(_baseDirectory, $"{userId}.json");
+            {
+                var user = await GetUserByTelegramUserIdAsync(userId, telegramUserName, cancellationToken);
+                var filePath = Path.Combine(_baseDirectory, $"{user.UserId}.json");
                 if (!File.Exists(filePath))
                 {
                     var newUser = new ToDoUser(userId, telegramUserName, cancellationToken);
