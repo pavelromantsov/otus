@@ -80,7 +80,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
 
         // Возвращает задачу по ID
-        public async Task<ToDoItem?> GetAsync(Guid userId, Guid id, CancellationToken cancellationToken)
+        public async Task<ToDoItem?> GetAsync(Guid id, CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync(cancellationToken); // ждём освобождения семафора
             try
@@ -120,7 +120,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
 
         // Удаляет задачу
-        public async Task Delete(Guid id, CancellationToken cancellationToken)
+        public void Delete(Guid id, CancellationToken cancellationToken)
         {
                 
                 if (_index.TryRemove(id, out var userId))

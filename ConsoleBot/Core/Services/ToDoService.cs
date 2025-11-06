@@ -42,10 +42,10 @@ namespace ConsoleBot.Core.Services
             return item;
         }
 
-        public async Task MarkCompletedAsync(Guid userId, Guid id, CancellationToken cancellationToken)
+        public async Task MarkCompletedAsync(Guid id, CancellationToken cancellationToken)
         {
          
-            var task = await _repository.GetAsync(userId, id, cancellationToken);
+            var task = await _repository.GetAsync(id, cancellationToken);
             if (task != null)
             {   
                 task.State = ToDoItemState.Completed;
@@ -54,9 +54,9 @@ namespace ConsoleBot.Core.Services
             }
         }
 
-        public async Task Delete(Guid id, CancellationToken cancellationToken)
+        public void Delete(Guid id, CancellationToken cancellationToken)
         {
-            await _repository.Delete(id, cancellationToken);
+            _repository.Delete(id, cancellationToken);
         }
 
         public int ParseAndValidateInt(string? str, int min, int max, CancellationToken cancellationToken)

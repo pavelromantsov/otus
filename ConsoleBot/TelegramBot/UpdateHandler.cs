@@ -62,12 +62,12 @@ namespace ConsoleBot.TelegramBot
                 var command = message.Text.Split(' ').First();
 
                 var user = await _userService.GetUserAsync(message.From.Id, message.From.FirstName, cancellationToken);
-                var keyboard = CreateKeyboard(message.From.Id, message.From.FirstName, cancellationToken);
+                var keyboard = CreateKeyboard(message.From.Id, cancellationToken);
 
 
                 if (user == null)
                 {
-                    await _userService.RegisterUserAsync(message.From.Id, message.From.FirstName, cancellationToken);
+                    await _userService.RegisterUserAsync(message.From.Id, cancellationToken);
                     user = await _userService.GetUserAsync(message.From.Id, message.From.FirstName, cancellationToken);
                 }
                 switch (command)
@@ -197,7 +197,7 @@ namespace ConsoleBot.TelegramBot
             {
                 var allTasks = await _toDoService.GetAllByUserIdAsync(user.UserId, cancellationToken);
                 var task = allTasks.ElementAt(taskIndex - 1);
-                await _toDoService.MarkCompletedAsync(user.UserId, task.Id, cancellationToken);
+                await _toDoService.MarkCompletedAsync(task.Id, cancellationToken);
                 await botClient.SendMessage(update.Message.Chat, $"Задача с номером '{taskIndex}' отмечена как выполненная.");
             }
             else
@@ -279,7 +279,7 @@ namespace ConsoleBot.TelegramBot
 
         public async Task MarkCompletedAsync(Guid userId, Guid id, CancellationToken cancellationToken)
         {
-            await _toDoService.MarkCompletedAsync(userId, id, cancellationToken);
+            await _toDoService.MarkCompletedAsync(id, cancellationToken);
         }
 
         public void Delete(Guid id, CancellationToken cancellationToken)
@@ -333,10 +333,10 @@ namespace ConsoleBot.TelegramBot
             }
         }
 
-        private async Task <ReplyKeyboardMarkup> CreateKeyboard(long telegramUserId, string telegramUserName, CancellationToken cancellationToken)
+        private async Task <ReplyKeyboardMarkup> CreateKeyboard(long telegramUserId, CancellationToken cancellationToken)
         {
             // Проверяем регистрацию пользователя
-            var isRegistered = await _userService.IsUserRegistered(telegramUserId, telegramUserName, cancellationToken);
+            var isRegistered = await _userService.IsUserRegistered(telegramUserId, cancellationToken);
 
             var buttons = isRegistered ?
             ["/showalltasks", "/showtasks", "/report"] :

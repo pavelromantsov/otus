@@ -16,7 +16,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
 
         // Получить пользователя по UserId
-        public async Task<ToDoUser?> GetUserAsync(Guid userId, string telegramUserName, CancellationToken cancellationToken)
+        public async Task<ToDoUser?> GetUserAsync(Guid userId, CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync(cancellationToken);
             try
@@ -31,7 +31,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
 
         // Получить пользователя по TelegramUserId
-        public async Task<ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, string telegramUserName, CancellationToken cancellationToken)
+        public async Task<ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, CancellationToken cancellationToken)
         {
             var users = await GetAllUsersAsync(telegramUserId, cancellationToken);
             return users.FirstOrDefault(u => u.TelegramUserId == telegramUserId);
@@ -60,16 +60,16 @@ namespace ConsoleBot.Infrastructure.DataAccess
 
         }
 
-        public async Task<ToDoUser?> GetUserAsync(long userId, string telegramUserName, CancellationToken cancellationToken)
+        public async Task<ToDoUser?> GetUserAsync(long userId,  CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync(cancellationToken);
             try
             {
-                var user = await GetUserByTelegramUserIdAsync(userId, telegramUserName, cancellationToken);
+                var user = await GetUserByTelegramUserIdAsync(userId, cancellationToken);
                 var filePath = Path.Combine(_baseDirectory, $"{user.UserId}.json");
                 if (!File.Exists(filePath))
                 {
-                    var newUser = new ToDoUser(userId, telegramUserName, cancellationToken);
+                    var newUser = new ToDoUser(userId, cancellationToken);
                     await AddAsync(newUser, cancellationToken); // Сохраняем пользователя в файл
                     return newUser;
                 }
