@@ -6,6 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Infrastructure\DataAccess\InMemoryToDoRepository.cs" />
+    <Compile Remove="Infrastructure\DataAccess\InMemoryUserRepository.cs" />
+  </ItemGroup>
   
 	<ItemGroup>
 		<None Update="appsettings.json">

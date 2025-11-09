@@ -18,6 +18,10 @@
             State = ToDoItemState.Active;
             StateChangedAt = null;
         }
+
+        public ToDoItem()
+        {
+        }
     }
     public enum ToDoItemState
     {

@@ -12,7 +12,7 @@ namespace ConsoleBot.Core.DataAccess
     {
         Task <ToDoUser?> GetUserAsync(Guid userId, CancellationToken cancellationToken);
         Task <ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, CancellationToken cancellationToken);
-        void Add(ToDoUser user);
+        Task AddAsync(ToDoUser user, CancellationToken cancellationToken);
         Task<ToDoUser?> GetUserAsync(long userId, CancellationToken cancellationToken);
     }
 }
