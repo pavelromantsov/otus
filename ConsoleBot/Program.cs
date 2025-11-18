@@ -9,6 +9,7 @@ using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using ConsoleBot.Scenarios;
 
 
 
@@ -21,7 +22,9 @@ namespace ConsoleBot
         public const string created_date = "20-08-2025";
         public const string updated_date = "03-11-2025";
         public const string whatsNew_text = "Переход с InMemmory на хранение в файлах, индексирование задач";
+        private static IScenarioContextRepository contextRepository;
         public static List<ToDoItem> tasks = new List<ToDoItem>();
+        private static IEnumerable<IScenario> scenarios = new List<IScenario>();
 
         public static async Task Main()
         {
@@ -36,9 +39,11 @@ namespace ConsoleBot
                 var todoService = new ToDoService(todoRepo);
                 var todoReportService = new ToDoReportService(todoRepo);
                 var botClient = new TelegramBotClient(botKey);
-                var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService);
+
+                var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService, scenarios, contextRepository);
                 var cts = new CancellationTokenSource();
                 var receiverOptions = new ReceiverOptions
+                
                 {
                     AllowedUpdates = [UpdateType.Message],
                     DropPendingUpdates = true

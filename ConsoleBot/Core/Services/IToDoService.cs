@@ -12,7 +12,8 @@ namespace ConsoleBot.Core.Services
 {
     public interface IToDoService
     {
-        Task<ToDoItem> AddAsync(ToDoUser user, string name, CancellationToken cancellationToken);
+        Task<ToDoItem> AddAsync(ToDoUser user, string name, DateTime deadline, CancellationToken cancellationToken);
+        //Task AddAsync(ToDoUser toDoUser, string? name, DateTime deadline, CancellationToken ct);
         Task <int>CountActiveAsync(ToDoUser user, CancellationToken cancellationToken);
         void Delete(Guid id, CancellationToken cancellationToken);
         Task <bool>ExistsByNameAsync(ToDoUser user, string name, CancellationToken cancellationToken);

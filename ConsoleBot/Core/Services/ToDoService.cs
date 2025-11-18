@@ -31,7 +31,7 @@ namespace ConsoleBot.Core.Services
         }
 
 
-        public async Task<ToDoItem> AddAsync(ToDoUser user, string name, CancellationToken cancellationToken)
+        public async Task<ToDoItem> AddAsync(ToDoUser user, string name, DateTime deadline, CancellationToken cancellationToken)
         {
             if (await _repository.ExistsByNameAsync(user.UserId, name, cancellationToken))
             {

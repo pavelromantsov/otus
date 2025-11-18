@@ -1,11 +1,16 @@
-﻿using ConsoleBot.Core.Entities;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Exceptions;
 using ConsoleBot.Core.Services;
-using Microsoft.Graph.Models;
+using ConsoleBot.Scenarios;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using static Telegram.Bot.TelegramBotClient;
 
 
 
@@ -22,12 +27,18 @@ namespace ConsoleBot.TelegramBot
         public delegate void MessageEventHandler(string message);
         public event MessageEventHandler? OnHandleUpdateStarted;
         public event MessageEventHandler? OnHandleUpdateCompleted;
+
+        private List <IScenario> _scenarios;
+        private IScenarioContextRepository _contextRepository;
+        private readonly DateTime deadline;
+
         public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource handleErrorSource, CancellationToken cancellationToken)
         {
             Console.WriteLine($"Ошибка: {exception.Message}");
             await Task.CompletedTask; // Чтобы удовлетворить контракт асинхронного метода
         }
-        public UpdateHandler(ITelegramBotClient botClient, IUserService userService, IToDoService toDoService, IToDoReportService toDoReportService)
+
+        public UpdateHandler(ITelegramBotClient botClient, IUserService userService, IToDoService toDoService, IToDoReportService toDoReportService, IEnumerable<IScenario> scenarios, IScenarioContextRepository contextRepository)
         {
             _botClient = botClient;
             _userService = userService;
@@ -35,9 +46,52 @@ namespace ConsoleBot.TelegramBot
             _toDoReportService = toDoReportService;
             OnHandleUpdateStarted += (message) => Console.WriteLine($"Началась обработка сообщения '{message}'");
             OnHandleUpdateCompleted += (message) => Console.WriteLine($"Закончилась обработка сообщения '{message}'");
+            _scenarios = (List<IScenario>)scenarios;
+            _contextRepository = contextRepository;
+            //_scenarios = scenarios.ToList();
         }
 
-        public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public IScenario GetScenario(ScenarioType scenarioType, ScenarioContext context)
+        {
+            
+            
+            var matchScenario = _scenarios.FirstOrDefault(s=>s.CanHandle(scenarioType));
+            if (matchScenario == null)
+            {
+                throw new Exception($"Сценарий {scenarioType} не найден");
+            }
+            return matchScenario;
+        }
+
+        public async Task ProcessScenario(ScenarioContext context, Telegram.Bot.Types.Message message, CancellationToken cancellationToken)
+        {
+            // Найдем сценарий, соответствующий текущему типу сценария
+
+            
+            var scenario = GetScenario(context.CurrentScenario, context);
+      
+            //var scenario  = _scenarios.FirstOrDefault(s => s.CanHandle(context.CurrentScenario));
+            if (scenario == null)
+            {
+                throw new InvalidOperationException($"Сценарий типа {context.CurrentScenario} не найден.");
+            }
+
+            // Передаем управление сценарию
+            var result = await scenario.HandleMessageAsync(_botClient, context, message, deadline, cancellationToken);
+            //var result = await scenario.HandleMessageAsync(null!, context, message, deadline, cancellationToken);
+            // Если сценарий завершился, сбросим контекст
+            if (result == ScenarioResult.Completed)
+            {
+                await _contextRepository.ResetContext(message.From.Id, cancellationToken);
+            }
+            else 
+            {
+                
+                await _contextRepository.SetContext(message.From.Id, context, cancellationToken);
+            }
+        }
+
+        public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update,  CancellationToken cancellationToken)
         {
             OnHandleUpdateStarted?.Invoke(update.Message.Text);
 
@@ -53,6 +107,9 @@ namespace ConsoleBot.TelegramBot
 
             try
             {
+                var _contextRepository = new InMemoryScenarioContextRepository();
+
+                var updateHandler = new UpdateHandler(_botClient, _userService, _toDoService, _toDoReportService, _scenarios, _contextRepository);
                 var message = update.Message;
                 if (message == null)
                     return;
@@ -60,9 +117,54 @@ namespace ConsoleBot.TelegramBot
 
                 var chatId = message.Chat.Id;
                 var command = message.Text.Split(' ').First();
-
+                var userId = message.From.Id;
                 var user = await _userService.GetUserAsync(message.From.Id, message.From.FirstName, cancellationToken);
                 var keyboard = CreateKeyboard(message.From.Id, cancellationToken);
+                var context = await _contextRepository.GetContext(userId, cancellationToken);
+                
+                if (context != null)
+                {
+                    // Есть активный сценарий, обрабатываем его
+                    await ProcessScenario(context, message, cancellationToken);
+                    return;
+                }
+                else
+                //{
+                //    context = new ScenarioContext(ScenarioType.None);
+                //    await _contextRepository.SetContext(userId, context, cancellationToken);
+                //    var scenario = _scenarios.FirstOrDefault(s => s.CanHandle(context.CurrentScenario));
+                //    if (scenario != null)
+                //    {
+                //        await scenario.HandleMessageAsync(botClient, context, message, deadline, cancellationToken);
+                //        return;
+                //    }
+                //}
+                // Если контекста нет, обычная обработка команд
+
+                switch (command)
+                {
+                    case "/start":
+                        await StartCommand(_botClient, update, chatId, user, cancellationToken);
+                        break;
+                    case "/help":
+                        await HelpCommand(_botClient, update, chatId, user, cancellationToken);
+                        break;
+                    case "/addtask":
+                        context = new ScenarioContext(ScenarioType.AddTask);
+                        var addTaskScenario = new AddTaskScenario(_userService, _toDoService);
+                        await _contextRepository.SetContext(userId, context, cancellationToken);
+                        _scenarios.Add(addTaskScenario);
+                        await ProcessScenario(context, message, cancellationToken);
+                        break;
+                }
+
+
+
+
+
+
+                if (message == null)
+                    return;
 
 
                 if (user == null)
@@ -70,43 +172,51 @@ namespace ConsoleBot.TelegramBot
                     await _userService.RegisterUserAsync(message.From.Id, cancellationToken);
                     user = await _userService.GetUserAsync(message.From.Id, message.From.FirstName, cancellationToken);
                 }
-                switch (command)
-                {
-                    case "/start":
-                        await StartCommand(_botClient, update, chatId, user, cancellationToken);
-                        break;
-                    case "/addtask":
-                        await AddTaskCommand(_botClient, update, chatId, user, message.Text, cancellationToken);
-                        break;
-                    case "/showtasks":
-                        await ShowTasksCommand(_botClient, update, chatId, user, cancellationToken);
-                        break;
-                    case "/completetask":
-                        await CompleteTaskCommand(_botClient, update, chatId, user, message.Text, cancellationToken);
-                        break;
-                    case "/showalltasks":
-                        await ShowAllTasksCommand(_botClient, update, chatId, user, message.Text, cancellationToken);
-                        break;
-                    case "/removetask":
-                        await RemoveTaskCommand(_botClient, update, chatId, user, message.Text, cancellationToken);
-                        break;
-                    case "/report":
-                        await ReportCommand(_botClient, update, chatId, user, _toDoReportService, cancellationToken);
-                        break;
-                    case "/find":
-                        await FindCommand(_botClient, update, chatId, user, cancellationToken);
-                        break;
-                    case "/help":
-                        await HelpCommand(_botClient, update, chatId, user, cancellationToken);
-                        break;
-                    case "/info":
-                        await InfoCommand(_botClient, update, chatId, user, cancellationToken);
-                        break;
-                    default:
-                        await botClient.SendMessage(update.Message.Chat, "Неизвестная команда");
-                        break;
-                }
+                
+               // switch (command)
+                //{
+                    //case "/start":
+                      //  await StartCommand(_botClient, update, chatId, user, cancellationToken);
+                //    //    break;
+                //    case "/addtask":
+                //        context = new ScenarioContext(ScenarioType.AddTask);
+                //        await _contextRepository.SetContext(userId, context, cancellationToken);
+                //        await ProcessScenario(context, message, cancellationToken);
+                //        break;
 
+                //       //await AddTaskCommand(_botClient, update, chatId, user, message.Text, deadline, cancellationToken);
+                //       //break;
+                //    case "/showtasks":
+                //        await ShowTasksCommand(_botClient, update, chatId, user, cancellationToken);
+                //        break;
+                //    case "/completetask":
+                //        await CompleteTaskCommand(_botClient, update, chatId, user, message.Text, cancellationToken);
+                //        break;
+                //    case "/showalltasks":
+                //        await ShowAllTasksCommand(_botClient, update, chatId, user, message.Text, cancellationToken);
+                //        break;
+                //    case "/removetask":
+                //        await RemoveTaskCommand(_botClient, update, chatId, user, message.Text, cancellationToken);
+                //        break;
+                //    case "/report":
+                //        await ReportCommand(_botClient, update, chatId, user, _toDoReportService, cancellationToken);
+                //        break;
+                //    case "/find":
+                //        await FindCommand(_botClient, update, chatId, user, cancellationToken);
+                //        break;
+                //    case "/help":
+                //        await HelpCommand(_botClient, update, chatId, user, cancellationToken);
+                //        break;
+                //    case "/info":
+                //        await InfoCommand(_botClient, update, chatId, user, cancellationToken);
+                //        break;
+                //    default:
+                //        await botClient.SendMessage(update.Message.Chat, "Неизвестная команда");
+                //        break;
+                //}
+                // Если имеется активный сценарий, обрабатываем его
+                
+                
             }
             catch (Exception ex)
             {
@@ -134,7 +244,7 @@ namespace ConsoleBot.TelegramBot
             await botClient.SendMessage(update.Message.Chat, "/info - информация о программе");
         }
 
-        private async Task AddTaskCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, string message, CancellationToken cancellationToken)
+        private async Task AddTaskCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, string message, DateTime deadline, CancellationToken cancellationToken)
         {
 
             var taskName = update.Message.Text;
@@ -172,7 +282,7 @@ namespace ConsoleBot.TelegramBot
                 return;
             }
 
-            var task = await _toDoService.AddAsync(user, taskName, cancellationToken);
+            var task = await _toDoService.AddAsync(user, taskName, deadline, cancellationToken);
             await botClient.SendMessage(update.Message.Chat, $"Задача '{task.Name}' добавлена.");
         }
 
@@ -272,9 +382,9 @@ namespace ConsoleBot.TelegramBot
             return await _toDoService.GetActiveByUserIdAsync(userId, cancellationToken);
         }
 
-        public async Task<ToDoItem> AddAsync(ToDoUser user, string name, CancellationToken cancellationToken)
+        public async Task<ToDoItem> AddAsync(ToDoUser user, string name, DateTime deadline, CancellationToken cancellationToken)
         {
-            return await _toDoService.AddAsync(user, name, cancellationToken);
+            return await _toDoService.AddAsync(user, name, deadline, cancellationToken);
         }
 
         public async Task MarkCompletedAsync(Guid userId, Guid id, CancellationToken cancellationToken)
@@ -344,9 +454,6 @@ namespace ConsoleBot.TelegramBot
 
             return new ReplyKeyboardMarkup(buttons);
         }
-
-
-
 
     }
 }

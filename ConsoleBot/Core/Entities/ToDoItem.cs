@@ -6,6 +6,7 @@
         public ToDoUser User { get; set; }
         public string Name { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime Deadline { get; set; }
         public ToDoItemState State { get; set; }
         public DateTime? StateChangedAt { get; set; }
 
@@ -15,6 +16,7 @@
             User = user;
             Name = name;
             CreatedAt = DateTime.UtcNow;
+            Deadline = Deadline;
             State = ToDoItemState.Active;
             StateChangedAt = null;
         }
