@@ -10,13 +10,13 @@
         public ToDoItemState State { get; set; }
         public DateTime? StateChangedAt { get; set; }
 
-        public ToDoItem(ToDoUser user, string name, CancellationToken cancellationToken)
+        public ToDoItem(ToDoUser user, string name, DateTime deadline, CancellationToken cancellationToken)
         {
             Id = Guid.NewGuid();
             User = user;
             Name = name;
             CreatedAt = DateTime.UtcNow;
-            Deadline = Deadline;
+            Deadline = deadline;
             State = ToDoItemState.Active;
             StateChangedAt = null;
         }

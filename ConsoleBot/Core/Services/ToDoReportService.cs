@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using ConsoleBot.Core.DataAccess;
+﻿using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
-using ConsoleBot.Core.Services;
 
 namespace ConsoleBot.Core.Services
 {

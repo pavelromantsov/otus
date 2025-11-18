@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Services;
 using Telegram.Bot;
@@ -15,6 +10,9 @@ namespace ConsoleBot.Scenarios
     {
         private readonly IUserService _userService;
         private readonly IToDoService _toDoService;
+        private IScenarioContextRepository _contextRepository = new InMemoryScenarioContextRepository();
+        private List<IScenario> _scenarios = new List<IScenario>();
+        private IScenario addTaskScenario;
 
         public AddTaskScenario(IUserService userService, IToDoService toDoService)
         {
@@ -29,7 +27,6 @@ namespace ConsoleBot.Scenarios
 
         public async Task<ScenarioResult> HandleMessageAsync(ITelegramBotClient botClient, ScenarioContext context, Message message, DateTime deadLine, CancellationToken ct)
         {
-
             switch (context.CurrentStep)
             {
                 case null:
@@ -37,13 +34,15 @@ namespace ConsoleBot.Scenarios
                     context.Data["User"] = user;
                     await botClient.SendMessage(message.Chat.Id, "Введите название задачи:", cancellationToken: ct);
                     context.CurrentStep = "Name";
+                    await _contextRepository.SetContext(message.From.Id, context, ct);
                     return ScenarioResult.Transition;
 
                 case "Name":
-                    var name = message.Text;
-                    context.Data["Name"] = name;
+                    var taskName = message.Text;
+                    context.Data["Name"] = taskName;
                     await botClient.SendMessage(message.Chat.Id, "Введите срок выполнения задачи в формате dd.MM.yyyy:", cancellationToken: ct);
                     context.CurrentStep = "Deadline";
+                    await _contextRepository.SetContext(message.From.Id, context, ct);
                     return ScenarioResult.Transition;
 
                 case "Deadline":

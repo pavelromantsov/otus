@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ConsoleBot.Core.DataAccess;
+﻿using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Exceptions;
-using Telegram.Bot.Types;
 
 
 namespace ConsoleBot.Core.Services
@@ -37,7 +31,7 @@ namespace ConsoleBot.Core.Services
             {
                 throw new DuplicateTaskException(name);
             }
-            var item = new ToDoItem(user, name, cancellationToken);
+            var item = new ToDoItem(user, name, deadline, cancellationToken);
             await _repository.AddAsync(item, cancellationToken);
             return item;
         }
