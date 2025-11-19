@@ -10,14 +10,13 @@ namespace ConsoleBot.Scenarios
     {
         private readonly IUserService _userService;
         private readonly IToDoService _toDoService;
-        private IScenarioContextRepository _contextRepository = new InMemoryScenarioContextRepository();
-        private List<IScenario> _scenarios = new List<IScenario>();
-        private IScenario addTaskScenario;
+        private IScenarioContextRepository _contextRepository;
 
-        public AddTaskScenario(IUserService userService, IToDoService toDoService)
+        public AddTaskScenario(IUserService userService, IToDoService toDoService, IScenarioContextRepository contextRepository)
         {
             _userService = userService;
             _toDoService = toDoService;
+            _contextRepository = contextRepository;
         }
 
         public bool CanHandle(ScenarioType scenario)

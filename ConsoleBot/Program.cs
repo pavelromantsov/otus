@@ -19,9 +19,6 @@ namespace ConsoleBot
         public const string created_date = "20-08-2025";
         public const string updated_date = "18-11-2025";
         public const string whatsNew_text = "Реализация сценария AddTask, добавлен срок исполнения задач";
-        private static IScenarioContextRepository contextRepository;
-        public static List<ToDoItem> tasks = new List<ToDoItem>();
-        private static IEnumerable<IScenario> scenarios = new List<IScenario>();
 
         public static async Task Main()
         {
@@ -39,18 +36,22 @@ namespace ConsoleBot
                 var todoService = new ToDoService(todoRepo);
                 var todoReportService = new ToDoReportService(todoRepo);
                 
+                // Создаем контекст-хранилище сценариев
+                var contextRepository = new InMemoryScenarioContextRepository();
+
                 // Добавляем сценарий
                 var scenarios = new List<IScenario>
                 {
-                    new AddTaskScenario(userService, todoService),
-                    
+                    new AddTaskScenario(userService, todoService, contextRepository),
                 };
-                // Создаем контекст-хранилище сценариев
-                var contextRepository = new InMemoryScenarioContextRepository();
 
                 // Бот и обработчики
                 var botClient = new TelegramBotClient(botKey);
                 var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService, scenarios, contextRepository);
+                
+                //Подписываемся на события
+                updateHandler.OnHandleUpdateStarted += (message) => Console.WriteLine($"Началась обработка сообщения '{message}'");
+                updateHandler.OnHandleUpdateCompleted += (message) => Console.WriteLine($"Закончилась обработка сообщения '{message}'");
                 
                 // Конфигурация и старт бота
                 var cts = new CancellationTokenSource();
