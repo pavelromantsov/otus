@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Concurrent;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
-using System.IO;
-using System.Data.SqlTypes;
 
 
 namespace ConsoleBot.Infrastructure.DataAccess
