@@ -6,6 +6,6 @@ namespace ConsoleBot.Scenarios
     public interface IScenario
     {
         bool CanHandle (ScenarioType scenario);
-        Task<ScenarioResult> HandleMessageAsync(ITelegramBotClient bot, ScenarioContext context, Message message, DateTime deadline, CancellationToken ct);
+        Task<ScenarioResult> HandleMessageAsync(ITelegramBotClient bot, ScenarioContext context, Message message, CancellationToken ct);
     }
 }

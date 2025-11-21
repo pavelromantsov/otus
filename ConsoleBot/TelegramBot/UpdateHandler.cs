@@ -24,7 +24,7 @@ namespace ConsoleBot.TelegramBot
 
         private readonly IEnumerable<IScenario> _scenarios;
         private readonly IScenarioContextRepository _contextRepository;
-        private readonly DateTime deadline;
+
         public UpdateHandler(ITelegramBotClient botClient, IUserService userService, IToDoService toDoService, IToDoReportService toDoReportService, IEnumerable<IScenario> scenarios, IScenarioContextRepository contextRepository)
         {
             _botClient = botClient;
@@ -32,7 +32,7 @@ namespace ConsoleBot.TelegramBot
             _toDoService = toDoService;
             _toDoReportService = toDoReportService;
             _contextRepository = contextRepository;
-            _scenarios = scenarios.ToList();
+            _scenarios = scenarios;
         }
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
@@ -161,7 +161,7 @@ namespace ConsoleBot.TelegramBot
         {
             // Найдем сценарий, соответствующий текущему типу сценария 
             var scenario = GetScenario(context.CurrentScenario, context);
-            var result = await scenario.HandleMessageAsync(_botClient, context, message, deadline, cancellationToken);
+            var result = await scenario.HandleMessageAsync(_botClient, context, message, cancellationToken);
 
             // Если сценарий завершился, сбросим контекст
             if (result == ScenarioResult.Completed)
@@ -272,11 +272,6 @@ namespace ConsoleBot.TelegramBot
         public async Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken)
         {
             return await _toDoService.GetActiveByUserIdAsync(userId, cancellationToken);
-        }
-
-        public async Task<ToDoItem> AddAsync(ToDoUser user, string name, DateTime deadline, CancellationToken cancellationToken)
-        {
-            return await _toDoService.AddAsync(user, name, deadline, cancellationToken);
         }
 
         public async Task MarkCompletedAsync(Guid userId, Guid id, CancellationToken cancellationToken)
