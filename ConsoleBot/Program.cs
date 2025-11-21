@@ -4,6 +4,7 @@ using ConsoleBot.Infrastructure.DataAccess;
 using ConsoleBot.Scenarios;
 using ConsoleBot.TelegramBot;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Graph.Models;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
@@ -32,10 +33,12 @@ namespace ConsoleBot
                 //репозитории и сервисы
                 var userRepo = new FileUserRepository("data/users");
                 var todoRepo = new FileToDoRepository("data/todos");
+                var todoListRepo = new FileToDoListRepository("data/lists");
                 var userService = new UserService(userRepo);
                 var todoService = new ToDoService(todoRepo);
                 var todoReportService = new ToDoReportService(todoRepo);
-                
+                var toDoListService = new ToDoListService(todoListRepo);
+
                 // Создаем контекст-хранилище сценариев
                 var contextRepository = new InMemoryScenarioContextRepository();
 
@@ -47,7 +50,7 @@ namespace ConsoleBot
 
                 // Бот и обработчики
                 var botClient = new TelegramBotClient(botKey);
-                var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService, scenarios, contextRepository);
+                var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService, scenarios, contextRepository, toDoListService);
                 
                 //Подписываемся на события
                 updateHandler.OnHandleUpdateStarted += (message) => Console.WriteLine($"Началась обработка сообщения '{message}'");

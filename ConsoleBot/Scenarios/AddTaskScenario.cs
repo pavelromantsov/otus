@@ -24,7 +24,7 @@ namespace ConsoleBot.Scenarios
             return scenario == ScenarioType.AddTask;
         }
 
-        public async Task<ScenarioResult> HandleMessageAsync(ITelegramBotClient botClient, ScenarioContext context, Message message, DateTime deadLine, CancellationToken ct)
+        public async Task<ScenarioResult> HandleMessageAsync(ITelegramBotClient botClient, ScenarioContext context, Message message, DateTime deadLine, ToDoList? list, CancellationToken ct)
         {
             switch (context.CurrentStep)
             {
@@ -49,7 +49,7 @@ namespace ConsoleBot.Scenarios
                     {
                         var _user = (ToDoUser)context.Data["User"];
                         var _name = (string)context.Data["Name"];
-                        await _toDoService.AddAsync(_user, _name, deadline, ct);
+                        await _toDoService.AddAsync(_user, _name, deadline, list, ct);
                         await botClient.SendMessage(message.Chat.Id, "Задача успешно добавлена.", cancellationToken: ct);
                         return ScenarioResult.Completed;
                     }

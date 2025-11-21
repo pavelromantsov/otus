@@ -9,8 +9,9 @@
         public DateTime Deadline { get; set; }
         public ToDoItemState State { get; set; }
         public DateTime? StateChangedAt { get; set; }
+        public ToDoList? List { get; set; }
 
-        public ToDoItem(ToDoUser user, string name, DateTime deadline, CancellationToken cancellationToken)
+        public ToDoItem(ToDoUser user, string name, DateTime deadline, ToDoList? list = null)
         {
             Id = Guid.NewGuid();
             User = user;
@@ -19,6 +20,7 @@
             Deadline = deadline;
             State = ToDoItemState.Active;
             StateChangedAt = null;
+            List = list;
         }
 
         public ToDoItem()

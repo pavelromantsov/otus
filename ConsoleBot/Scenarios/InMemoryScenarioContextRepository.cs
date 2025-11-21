@@ -1,8 +1,10 @@
-﻿namespace ConsoleBot.Scenarios
+﻿using System.Collections.Concurrent;
+
+namespace ConsoleBot.Scenarios
 {
     public class InMemoryScenarioContextRepository:IScenarioContextRepository
     {
-        private readonly Dictionary<long, ScenarioContext> _contexts = new Dictionary<long, ScenarioContext>();
+        private readonly ConcurrentDictionary<long, ScenarioContext> _contexts = new ConcurrentDictionary<long, ScenarioContext>();
 
         public async Task<ScenarioContext?> GetContext(long userId, CancellationToken ct)
         {
@@ -17,7 +19,7 @@
 
         public Task ResetContext(long userId, CancellationToken ct)
         {
-            _contexts.Remove(userId);
+            _contexts.TryRemove(userId, out _);
             return Task.CompletedTask;
         }
     }

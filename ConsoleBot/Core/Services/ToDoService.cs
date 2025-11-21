@@ -25,13 +25,13 @@ namespace ConsoleBot.Core.Services
         }
 
 
-        public async Task<ToDoItem> AddAsync(ToDoUser user, string name, DateTime deadline, CancellationToken cancellationToken)
+        public async Task<ToDoItem> AddAsync(ToDoUser user, string name, DateTime deadline, ToDoList? list, CancellationToken cancellationToken)
         {
             if (await _repository.ExistsByNameAsync(user.UserId, name, cancellationToken))
             {
                 throw new DuplicateTaskException(name);
             }
-            var item = new ToDoItem(user, name, deadline, cancellationToken);
+            var item = new ToDoItem(user, name, deadline, list);
             await _repository.AddAsync(item, cancellationToken);
             return item;
         }
@@ -87,5 +87,22 @@ namespace ConsoleBot.Core.Services
             return await _repository.CountActiveAsync(user.UserId, cancellationToken);
         }
 
+        async Task<IReadOnlyList<ToDoItem>> IToDoService.GetByUserIdAndList(Guid userId, Guid? listId, CancellationToken cancellationToken)
+        {
+            // Читаем все задачи из репозитория
+            var items = await _repository.GetAllByUserIdAsync(userId,cancellationToken);
+
+            // Фильтруем задачи по пользователю
+            var filteredItems = items.Where(item => item.User.UserId == userId);
+
+            // Дополнительно фильтруем по списку, если он указан
+            if (listId.HasValue)
+            {
+                filteredItems = filteredItems.Where(item => item.List?.Id == listId.Value);
+            }
+
+            return filteredItems.ToList().AsReadOnly();
+        }
     }
+    
 }

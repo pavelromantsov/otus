@@ -4,7 +4,7 @@ namespace ConsoleBot.Core.Services
 {
     public interface IToDoService
     {
-        Task<ToDoItem> AddAsync(ToDoUser user, string name, DateTime deadline, CancellationToken cancellationToken);
+        Task<ToDoItem> AddAsync(ToDoUser user, string name, DateTime deadline, ToDoList? list, CancellationToken cancellationToken);
         Task <int>CountActiveAsync(ToDoUser user, CancellationToken cancellationToken);
         void Delete(Guid id, CancellationToken cancellationToken);
         Task <bool>ExistsByNameAsync(ToDoUser user, string name, CancellationToken cancellationToken);
@@ -14,6 +14,7 @@ namespace ConsoleBot.Core.Services
         Task MarkCompletedAsync(Guid id, CancellationToken cancellationToken);
         int ParseAndValidateInt(string? str, int min, int max, CancellationToken cancellationToken);
         Task ValidateStringAsync(string? str, CancellationToken cancellationToken);
+        Task<IReadOnlyList<ToDoItem>> GetByUserIdAndList(Guid userId, Guid? listId, CancellationToken ct);
     }
 
 }
