@@ -24,7 +24,7 @@ namespace ConsoleBot.Scenarios
             return scenario == ScenarioType.AddTask;
         }
 
-        public async Task<ScenarioResult> HandleMessageAsync(ITelegramBotClient botClient, ScenarioContext context, Message message, DateTime deadLine, ToDoList? list, CancellationToken ct)
+        public async Task<ScenarioResult> HandleMessageAsync(ITelegramBotClient botClient, ScenarioContext context, Message message, ToDoList? list, CancellationToken ct)
         {
             switch (context.CurrentStep)
             {
