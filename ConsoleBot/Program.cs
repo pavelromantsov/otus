@@ -37,7 +37,7 @@ namespace ConsoleBot
                 var userService = new UserService(userRepo);
                 var todoService = new ToDoService(todoRepo);
                 var todoReportService = new ToDoReportService(todoRepo);
-                var toDoListService = new ToDoListService(todoListRepo);
+                var todoListService = new ToDoListService(todoListRepo);
 
                 // Создаем контекст-хранилище сценариев
                 var contextRepository = new InMemoryScenarioContextRepository();
@@ -46,11 +46,13 @@ namespace ConsoleBot
                 var scenarios = new List<IScenario>
                 {
                     new AddTaskScenario(userService, todoService, contextRepository),
+                    new AddListScenario (userService, todoListService, todoService, contextRepository),
+                    new DeleteListScenario(userService, todoListService, todoService, contextRepository),
                 };
 
                 // Бот и обработчики
                 var botClient = new TelegramBotClient(botKey);
-                var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService, scenarios, contextRepository, toDoListService);
+                var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService, scenarios, contextRepository, todoListService);
                 
                 //Подписываемся на события
                 updateHandler.OnHandleUpdateStarted += (message) => Console.WriteLine($"Началась обработка сообщения '{message}'");
@@ -60,7 +62,7 @@ namespace ConsoleBot
                 var cts = new CancellationTokenSource();
                 var receiverOptions = new ReceiverOptions
                 {
-                    AllowedUpdates = [ UpdateType.Message ],
+                    AllowedUpdates = [ UpdateType.Message, UpdateType.CallbackQuery ],
                     DropPendingUpdates = true
                 };
                 botClient.StartReceiving(updateHandler, receiverOptions, cts.Token);

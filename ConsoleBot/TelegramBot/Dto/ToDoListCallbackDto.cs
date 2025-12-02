@@ -16,24 +16,36 @@ namespace ConsoleBot.TelegramBot.Dto
         }
         public static new ToDoListCallbackDto FromString(string input)
         {
-            if (input.Contains("|"))
+            if (string.IsNullOrEmpty(input))
             {
-                var parts = input.Split('|');
-                return new ToDoListCallbackDto(parts[0], Guid.TryParse(parts[1], out var guid) ? guid : (Guid?)null);
+                return null;
             }
-            else
+
+            var parts = input.Split('|');
+
+            if (parts.Length < 1)
             {
-                return new ToDoListCallbackDto(input, null);
+                return null;
             }
+
+            var action = parts[0];
+            Guid? toDoListId = null;
+
+            if (parts.Length > 1 && !string.IsNullOrEmpty(parts[1]))
+            {
+                if (Guid.TryParse(parts[1], out var guid))
+                {
+                    toDoListId = guid;
+                }
+            }
+
+            return new ToDoListCallbackDto(action, toDoListId);
         }
         public override string ToString()
         {
-            return $"{base.ToString()}|{ToDoListId}";
+            return $"{base.ToString()}|{ToDoListId?.ToString() ?? ""}";
         }
-        public static string Create(string action, Guid? toDoListId)
-        {
-            return $"{action}|{toDoListId}";
-        }
+
     }
 
 }

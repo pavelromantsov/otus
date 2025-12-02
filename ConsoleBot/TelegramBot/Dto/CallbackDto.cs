@@ -15,18 +15,52 @@ namespace ConsoleBot.TelegramBot.Dto
             Action = action; 
         }
         
-        public static CallbackDto FromString(string input) //На вход принимает строку ввида "{action}|{prop1}|{prop2}...". Нужно создать CallbackDto с Action = action. Нужно учесть что в строке может не быть |, тогда всю строку сохраняем в Action.
+        //public static CallbackDto FromString(string input) //На вход принимает строку ввида "{action}|{prop1}|{prop2}...". Нужно создать CallbackDto с Action = action. Нужно учесть что в строке может не быть |, тогда всю строку сохраняем в Action.
+        //{
+        //    if (input.Contains("|"))
+        //    {
+        //        var parts = input.Split('|');
+        //        return new CallbackDto(parts[0]); // Берём первый элемент как Action
+        //    }
+        //    else
+        //    {
+        //        return new CallbackDto(input); // Вся строка принимается как Action
+        //    }
+        //}
+
+        public static CallbackDto FromString(string input)
         {
-            if (input.Contains("|"))
+            if (string.IsNullOrEmpty(input))
             {
-                var parts = input.Split('|');
-                return new CallbackDto(parts[0]); // Берём первый элемент как Action
+                return null;
             }
-            else
+
+            var parts = input.Split('|');
+            if (parts.Length < 1)
             {
-                return new CallbackDto(input); // Вся строка принимается как Action
+                return null;
             }
+
+            var action = parts[0];
+            Guid? listId = null;
+
+            if (parts.Length > 1 && !string.IsNullOrEmpty(parts[1]))
+            {
+                if (Guid.TryParse(parts[1], out var guid))
+                {
+                    listId = guid;
+                }
+            }
+
+            return new CallbackDto (action)
+            {
+                Action = action,
+               
+            };
         }
+
+
+
 
         public override string ToString()
         {
