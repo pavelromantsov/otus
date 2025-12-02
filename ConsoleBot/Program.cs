@@ -43,9 +43,11 @@ namespace ConsoleBot
                 var contextRepository = new InMemoryScenarioContextRepository();
 
                 // Добавляем сценарий
-                var scenarios = new List<IScenario>
+                var scenarios = new List<IScenario> 
                 {
-                    new AddTaskScenario(userService, todoService, contextRepository),
+                    new AddTaskScenario(userService, todoService, contextRepository, toDoListService),
+                    new AddListScenario(userService, toDoListService, todoService, contextRepository),
+                    new DeleteListScenario (userService, toDoListService, todoService, contextRepository),
                 };
 
                 // Бот и обработчики
@@ -60,7 +62,11 @@ namespace ConsoleBot
                 var cts = new CancellationTokenSource();
                 var receiverOptions = new ReceiverOptions
                 {
-                    AllowedUpdates = [ UpdateType.Message ],
+                    AllowedUpdates = new[]
+                    {
+                        UpdateType.Message,
+                        UpdateType.CallbackQuery  
+                    },
                     DropPendingUpdates = true
                 };
                 botClient.StartReceiving(updateHandler, receiverOptions, cts.Token);

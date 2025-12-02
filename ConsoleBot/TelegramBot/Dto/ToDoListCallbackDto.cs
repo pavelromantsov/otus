@@ -28,7 +28,7 @@ namespace ConsoleBot.TelegramBot.Dto
         }
         public override string ToString()
         {
-            return $"{base.ToString()}|{ToDoListId}";
+            return $"{base.ToString()}|{(ToDoListId.HasValue ? ToDoListId.Value.ToString() : "")}";
         }
         public static string Create(string action, Guid? toDoListId)
         {

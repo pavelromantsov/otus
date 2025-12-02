@@ -12,13 +12,9 @@ namespace ConsoleBot.Infrastructure.DataAccess
 {
     public class FileToDoListRepository : IToDoListRepository
     {
-        //Task<IReadOnlyList<ToDoList>> GetByUserId(Guid userId, CancellationToken ct);
-        //Task Add(ToDoList list, CancellationToken ct);
-        //Task Delete(Guid id, CancellationToken ct);
-        //Task<bool> ExistsByName(Guid userId, string name, CancellationToken ct);
 
         private readonly string _baseDirectory;
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // разрешаем только одному потоку читать/писать одновременно
+        //private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // разрешаем только одному потоку читать/писать одновременно
         
         public FileToDoListRepository(string baseDirectory)
         {
