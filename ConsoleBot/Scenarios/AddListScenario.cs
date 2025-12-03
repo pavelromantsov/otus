@@ -36,7 +36,7 @@ namespace ConsoleBot.Scenarios
             switch (context.CurrentStep)
             {
                 case null:
-                    var user = await _userService.GetUserByTelegramUserIdAsync(message.From.Id, ct);
+                    var user = await _userService.GetUserByTelegramUserIdAsync(message.Chat.Id, ct);
                     context.Data["User"] = user;
                     await botClient.SendMessage(message.Chat.Id, "Введите название списка:", cancellationToken: ct);
                     context.CurrentStep = "Name";

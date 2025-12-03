@@ -14,8 +14,8 @@ namespace ConsoleBot.Infrastructure.DataAccess
     {
 
         private readonly string _baseDirectory;
-        //private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // разрешаем только одному потоку читать/писать одновременно
-        
+        //private readonly string _toDoUser;
+
         public FileToDoListRepository(string baseDirectory)
         {
             _baseDirectory = Path.Combine(baseDirectory, "todolists.json"); ;
@@ -32,11 +32,12 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
 
         
-        // Получает все списки задач пользователя.
-        
+        // Получает все списки задач пользователя.  
         public async Task<IReadOnlyList<ToDoList>> GetByUserId(Guid userId, CancellationToken ct)
         {
             var data = await ReadData(ct);
+            //var user = ToDoUser.UserId;
+
             return data.Where(x => x.User.UserId == userId).ToList();
         }
 
@@ -76,7 +77,8 @@ namespace ConsoleBot.Infrastructure.DataAccess
             if (!File.Exists(_baseDirectory)) return new List<ToDoList>();
 
             var content = await File.ReadAllTextAsync(_baseDirectory, ct);
-            return JsonSerializer.Deserialize<List<ToDoList>>(content) ?? new List<ToDoList>();
+            return JsonSerializer.Deserialize<List<ToDoList>>(content);
+                //?? new List<ToDoList>();
         }
 
         private async Task WriteData(List<ToDoList> data, CancellationToken ct)

@@ -18,6 +18,7 @@ namespace ConsoleBot.TelegramBot
         private readonly IToDoService _toDoService;
         private readonly IToDoReportService _toDoReportService;
         private readonly ToDoListService _toDoListService;
+        private readonly ToDoListCallbackDto _toDoListCallbackDto;
 
         public delegate void MessageEventHandler(string message);
         public event MessageEventHandler? OnHandleUpdateStarted;
@@ -26,6 +27,7 @@ namespace ConsoleBot.TelegramBot
         private readonly IEnumerable<IScenario> _scenarios;
         private readonly IScenarioContextRepository _contextRepository;
         private readonly ToDoList? list;
+        private readonly Guid? toDoListId;
 
         public UpdateHandler(ITelegramBotClient botClient, IUserService userService, IToDoService toDoService, IToDoReportService toDoReportService, IEnumerable<IScenario> scenarios, IScenarioContextRepository contextRepository, ToDoListService toDoListService)
         {
@@ -195,12 +197,12 @@ namespace ConsoleBot.TelegramBot
             // Если сценарий завершился, сбросим контекст
             if (result == ScenarioResult.Completed)
             {
-                await _contextRepository.ResetContext(message.From.Id, cancellationToken);
+                await _contextRepository.ResetContext(message.Chat.Id, cancellationToken);
                 await SendDefaultKeyboard(message.Chat.Id, cancellationToken);
             }
             else
             {
-                await _contextRepository.SetContext(message.From.Id, context, cancellationToken);
+                await _contextRepository.SetContext(message.Chat.Id, context, cancellationToken);
             }
             // Отправляем кнопку /cancel при активном сценарии
             if (context.CurrentScenario != ScenarioType.None)
@@ -211,35 +213,36 @@ namespace ConsoleBot.TelegramBot
 
         public async Task ShowCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, CancellationToken cancellationToken)
         {
-    var lists = await _toDoListService.GetUserLists(user.UserId, cancellationToken);
+            var lists = await _toDoListService.GetUserLists(user.UserId, cancellationToken);
 
-    if (lists.Count == 0)
-    {
-        await botClient.SendMessage(chat, "У вас нет созданных списков задач.", cancellationToken: cancellationToken);
-        //return;
-    }
+            if (lists.Count == 0)
+            {
+                await botClient.SendMessage(chat, "У вас нет созданных списков задач.", cancellationToken: cancellationToken);
+                //return;
+            }
 
-    var keyboardRows = new List<IEnumerable<InlineKeyboardButton>>
-    {
-        // Кнопка "Без списка"
-        new[] { InlineKeyboardButton.WithCallbackData("📌 Без списка", ToDoListCallbackDto.Create("show", null)) }
-    };
+            var keyboardRows = new List<IEnumerable<InlineKeyboardButton>>
+            {
+                // Кнопка "Без списка"
+                new[] { InlineKeyboardButton.WithCallbackData("📌 Без списка", new ToDoListCallbackDto("show", null).ToString()) }
+            };
+            Console.WriteLine($"Пользователь {user.UserId}: {lists.Count} списков");
+            // Кнопки для каждого списка
+            foreach (var list in lists)
+            {
+                keyboardRows.Add(new[] { InlineKeyboardButton.WithCallbackData(list.Name, new ToDoListCallbackDto("show", list.Id).ToString()) });
+            }
 
-    // Кнопки для каждого списка
-    foreach (var list in lists)
-    {
-        keyboardRows.Add(new[] { InlineKeyboardButton.WithCallbackData(list.Name, ToDoListCallbackDto.Create("show", list.Id)) });
-    }
 
-    // Кнопка "Добавить"
-    keyboardRows.Add(new[] { InlineKeyboardButton.WithCallbackData("🆕 Добавить", "AddList") });
+            // Кнопка "Добавить"
+            keyboardRows.Add(new[] { InlineKeyboardButton.WithCallbackData("🆕 Добавить", "AddList") });
 
-    // Кнопка "Удалить"
-    keyboardRows.Add(new[] { InlineKeyboardButton.WithCallbackData("❌ Удалить", "DeleteList") });
+            // Кнопка "Удалить"
+            keyboardRows.Add(new[] { InlineKeyboardButton.WithCallbackData("❌ Удалить", "DeleteList") });
 
-    var inlineKeyboard = new InlineKeyboardMarkup(keyboardRows);
-    await botClient.SendMessage(chat, "Выберите список:", replyMarkup: inlineKeyboard, cancellationToken: cancellationToken);
-}
+            var inlineKeyboard = new InlineKeyboardMarkup(keyboardRows);
+            await botClient.SendMessage(chat, "Выберите список:", replyMarkup: inlineKeyboard, cancellationToken: cancellationToken);
+        }
             //{
         //    var lists = await _toDoListService.GetUserLists(user.UserId, cancellationToken);
 
@@ -485,13 +488,12 @@ namespace ConsoleBot.TelegramBot
             }
 
             // Парсим данные из callback-запроса
-            var dto = CallbackDto.FromString(callbackQuery.Data);
-
+            var dto = ToDoListCallbackDto.FromString(callbackQuery.Data);
             // Обрабатываем действие
             switch (dto.Action)
             {
                 case "show":
-                    await HandleShowAction(callbackQuery, dto as ToDoListCallbackDto, cancellationToken);
+                    await HandleShowAction(callbackQuery, dto , cancellationToken);
                     break;
                 case "AddList": // Когда нажата кнопка "🆕Добавить"
                     var addListContext = new ScenarioContext(ScenarioType.AddList);

@@ -40,13 +40,13 @@ namespace ConsoleBot.Scenarios
             {
                 case null:
                     // Получаем пользователя по Telegram идентификатору
-                    var user = await _userService.GetUserByTelegramUserIdAsync(message.From.Id, cancellationToken);
+                    var user = await _userService.GetUserByTelegramUserIdAsync(message.Chat.Id, cancellationToken);
 
                     // Если пользователь не найден, регистрируем его
                     if (user == null)
                     {
-                        await _userService.RegisterUserAsync(message.From.Id, cancellationToken);
-                        user = await _userService.GetUserByTelegramUserIdAsync(message.From.Id, cancellationToken);
+                        await _userService.RegisterUserAsync(message.Chat.Id, cancellationToken);
+                        user = await _userService.GetUserByTelegramUserIdAsync(message.Chat.Id, cancellationToken);
                     }
 
                     //var user = await _userService.GetUserByTelegramUserIdAsync(message.From.Id,  cancellationToken);
@@ -56,19 +56,19 @@ namespace ConsoleBot.Scenarios
                     var lists = await _toDoListService.GetUserLists(user.UserId, cancellationToken);
 
                     // Формируем клавиатуру с выбором списка
-                    var inlineKeyboard = new InlineKeyboardMarkup(lists.Select(list => InlineKeyboardButton.WithCallbackData(list.Name, ToDoListCallbackDto.Create("deletelist", list.Id))));
-                    await botClient.SendMessage(user.TelegramUserId, "Выберите список для удаления:", replyMarkup: inlineKeyboard, cancellationToken: cancellationToken);
+                    var inlineKeyboard = new InlineKeyboardMarkup(lists.Select(list => InlineKeyboardButton.WithCallbackData(list.Name, new ToDoListCallbackDto("deletelist", list.Id).ToString())));
+                    await botClient.SendMessage(message.Chat.Id, "Выберите список для удаления:", replyMarkup: inlineKeyboard, cancellationToken: cancellationToken);
                     context.CurrentStep = "Approve";
                     return ScenarioResult.Transition;
 
                 case "Approve":
                     // Получаем выбранный список из CallbackQuery
                     var dto = ToDoListCallbackDto.FromString(message.Text);
-                    var selectedList = await _toDoListService.Get(dto.ToDoListId!.Value, cancellationToken);
+                    var selectedList = await _toDoListService.Get(dto.ToDoListId.Value, cancellationToken);
                     context.Data["SelectedList"] = selectedList;
 
                     // Спрашиваем подтверждение
-                    await botClient.SendMessage(message.From.Id, $"Подтверждаете удаление списка {selectedList.Name}?",
+                    await botClient.SendMessage(message.Chat.Id, $"Подтверждаете удаление списка {selectedList.Name}?",
                         replyMarkup: new InlineKeyboardMarkup(
                             new[]
                             {
@@ -87,11 +87,11 @@ namespace ConsoleBot.Scenarios
                         var listToDelete = (ToDoList)context.Data["SelectedList"];
                         //await _toDoService.DeleteAllForList(listToDelete.Id, cancellationToken);
                         await _toDoListService.Delete(listToDelete.Id, cancellationToken);
-                        await botClient.SendMessage(message.From.Id, "Список успешно удалён.", cancellationToken: cancellationToken);
+                        await botClient.SendMessage(message.Chat.Id, "Список успешно удалён.", cancellationToken: cancellationToken);
                     }
                     else
                     {
-                        await botClient.SendMessage(message.From.Id, "Удаление отменено.", cancellationToken: cancellationToken);
+                        await botClient.SendMessage(message.Chat.Id, "Удаление отменено.", cancellationToken: cancellationToken);
                     }
                     return ScenarioResult.Completed;
 

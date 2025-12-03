@@ -30,10 +30,10 @@ namespace ConsoleBot.TelegramBot.Dto
         {
             return $"{base.ToString()}|{(ToDoListId.HasValue ? ToDoListId.Value.ToString() : "")}";
         }
-        public static string Create(string action, Guid? toDoListId)
-        {
-            return $"{action}|{toDoListId}";
-        }
+        //public static string Create(string action, Guid? toDoListId)
+        //{
+        //    return $"{action}|{toDoListId}";
+        //}
     }
 
 }
