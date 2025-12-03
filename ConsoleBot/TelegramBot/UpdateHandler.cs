@@ -378,11 +378,11 @@ namespace ConsoleBot.TelegramBot
             }
 
             // Обрабатываем нажатие кнопки
-            var dto = CallbackDto.FromString(callbackQuery.Data);
+            var dto = ToDoListCallbackDto.FromString(callbackQuery.Data);
             switch (dto.Action)
             {
                 case "show":
-                    await HandleShowAction(callbackQuery, dto as ToDoListCallbackDto, cancellationToken);
+                    await HandleShowAction(callbackQuery, dto, cancellationToken);
                     break;
                 case "addlist":
                     await StartAddListScenario(callbackQuery, cancellationToken);
