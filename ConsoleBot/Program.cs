@@ -4,22 +4,19 @@ using ConsoleBot.Infrastructure.DataAccess;
 using ConsoleBot.Scenarios;
 using ConsoleBot.TelegramBot;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Graph.Models;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
-
-
 
 namespace ConsoleBot
 {
     class Program
     {
         public static ToDoUser? currentUser = null;
-        public const string version = "5.2";
+        public const string version = "5.3";
         public const string created_date = "20-08-2025";
-        public const string updated_date = "18-11-2025";
-        public const string whatsNew_text = "Реализация сценария AddTask, добавлен срок исполнения задач";
+        public const string updated_date = "04-12-2025";
+        public const string whatsNew_text = "Реализация списков, сценариев AddList, DeleteList";
 
         public static async Task Main()
         {

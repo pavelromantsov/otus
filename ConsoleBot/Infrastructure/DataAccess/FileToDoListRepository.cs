@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
 
@@ -78,7 +72,6 @@ namespace ConsoleBot.Infrastructure.DataAccess
 
             var content = await File.ReadAllTextAsync(_baseDirectory, ct);
             return JsonSerializer.Deserialize<List<ToDoList>>(content);
-                //?? new List<ToDoList>();
         }
 
         private async Task WriteData(List<ToDoList> data, CancellationToken ct)

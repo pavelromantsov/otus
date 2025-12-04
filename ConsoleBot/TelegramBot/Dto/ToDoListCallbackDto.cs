@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ConsoleBot.TelegramBot.Dto
+﻿namespace ConsoleBot.TelegramBot.Dto
 {
     public class ToDoListCallbackDto : CallbackDto
     {
@@ -30,10 +24,7 @@ namespace ConsoleBot.TelegramBot.Dto
         {
             return $"{base.ToString()}|{(ToDoListId.HasValue ? ToDoListId.Value.ToString() : "")}";
         }
-        //public static string Create(string action, Guid? toDoListId)
-        //{
-        //    return $"{action}|{toDoListId}";
-        //}
+
     }
 
 }
