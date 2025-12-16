@@ -16,7 +16,6 @@ namespace ConsoleBot.Infrastructure.DataAccess
             Directory.CreateDirectory(baseDirectory); // Создаем директорию, если её нет
         }
 
-
         // Получает список задач по идентификатору.
 
         public async Task<ToDoList?> Get(Guid id, CancellationToken ct)
@@ -25,7 +24,6 @@ namespace ConsoleBot.Infrastructure.DataAccess
             return data.FirstOrDefault(x => x.Id == id);
         }
 
-        
         // Получает все списки задач пользователя.  
         public async Task<IReadOnlyList<ToDoList>> GetByUserId(Guid userId, CancellationToken ct)
         {
@@ -43,18 +41,21 @@ namespace ConsoleBot.Infrastructure.DataAccess
             data.Add(list);
             await WriteData(data, ct);
         }
-
-        
+       
         // Удаляет список задач по идентификатору.
         
         public async Task Delete(Guid id, CancellationToken ct)
         {
             var data = await ReadData(ct);
-            var index = data.FindIndex(x => x.Id == id);
-            if (index >= 0)
+
+            // LINQ
+            var updated = data
+                .Where(x => x.Id != id)
+                .ToList();
+
+            if (updated.Count != data.Count)
             {
-                data.RemoveAt(index);
-                await WriteData(data, ct);
+                await WriteData(updated, ct);
             }
         }
 

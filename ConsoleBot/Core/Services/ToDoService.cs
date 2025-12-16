@@ -1,6 +1,7 @@
 ﻿using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Exceptions;
+using Microsoft.Graph.Models;
 
 
 namespace ConsoleBot.Core.Services
@@ -8,6 +9,7 @@ namespace ConsoleBot.Core.Services
     public class ToDoService : IToDoService
     {
         private readonly IToDoRepository _repository;
+        private readonly IToDoListService _toDoListService;
 
         public ToDoService(IToDoRepository repository)
         {
@@ -38,10 +40,10 @@ namespace ConsoleBot.Core.Services
 
         public async Task MarkCompletedAsync(Guid id, CancellationToken cancellationToken)
         {
-         
+
             var task = await _repository.GetAsync(id, cancellationToken);
             if (task != null)
-            {   
+            {
                 task.State = ToDoItemState.Completed;
                 task.StateChangedAt = DateTime.Now;
                 await _repository.UpdateAsync(task, cancellationToken);
@@ -77,32 +79,39 @@ namespace ConsoleBot.Core.Services
             cancellationToken);
         }
 
-        public async Task<bool>ExistsByNameAsync(ToDoUser user, string name, CancellationToken cancellationToken)
+        public async Task<bool> ExistsByNameAsync(ToDoUser user, string name, CancellationToken cancellationToken)
         {
             return await _repository.ExistsByNameAsync(user.UserId, name, cancellationToken);
         }
 
-        public async Task<int>CountActiveAsync(ToDoUser user, CancellationToken cancellationToken)
+        public async Task<int> CountActiveAsync(ToDoUser user, CancellationToken cancellationToken)
         {
             return await _repository.CountActiveAsync(user.UserId, cancellationToken);
         }
 
-        async Task<IReadOnlyList<ToDoItem>> IToDoService.GetByUserIdAndList(Guid userId, Guid? listId, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> GetByUserIdAndList(
+    Guid userId,
+    Guid? listId,
+    CancellationToken cancellationToken)
         {
-            // Читаем все задачи из репозитория
-            var items = await _repository.GetAllByUserIdAsync(userId,cancellationToken);
-
-            // Фильтруем задачи по пользователю
-            var filteredItems = items.Where(item => item.User.UserId == userId);
-
-            // Дополнительно фильтруем по списку, если он указан
+            var items = await _repository.GetAllByUserIdAsync(userId, cancellationToken);
+            IEnumerable<ToDoItem> filtered = items;
             if (listId.HasValue)
             {
-                filteredItems = filteredItems.Where(item => item.List?.Id == listId.Value);
+                // задачи конкретного списка
+                filtered = filtered.Where(item => item.List != null && item.List.Id == listId.Value);
             }
+            else 
+            {
+                // задачи "без списка"
+                filtered = filtered.Where(item => item.List == null);
+            }
+            return filtered.ToList();
+        }
 
-            return filteredItems.ToList().AsReadOnly();
+        public async Task<ToDoItem?> Get(Guid toDoItemId, CancellationToken ct)
+        {
+            return await _repository.GetAsync(toDoItemId, ct);
         }
     }
-    
 }

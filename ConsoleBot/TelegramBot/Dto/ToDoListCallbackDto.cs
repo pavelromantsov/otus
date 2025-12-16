@@ -4,21 +4,24 @@
     {
         public Guid? ToDoListId { get; set; }
 
+
         public ToDoListCallbackDto(string action, Guid? toDoListId) : base(action)
         {
             ToDoListId = toDoListId;
         }
         public static new ToDoListCallbackDto FromString(string input)
         {
-            if (input.Contains("|"))
-            {
-                var parts = input.Split('|');
-                return new ToDoListCallbackDto(parts[0], Guid.TryParse(parts[1], out var guid) ? guid : (Guid?)null);
-            }
-            else
-            {
-                return new ToDoListCallbackDto(input, null);
-            }
+            var parts = input.Split('|');
+            if (parts.Length < 2)
+                throw new ArgumentException("Некорректный формат callbackData для ToDoListCallbackDto.");
+
+            var action = parts[0];
+
+            Guid? listId = null;
+            if (!string.IsNullOrEmpty(parts[1]) && Guid.TryParse(parts[1], out var parsed))
+                listId = parsed;
+
+            return new ToDoListCallbackDto(action, listId);
         }
         public override string ToString()
         {

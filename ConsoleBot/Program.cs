@@ -13,10 +13,10 @@ namespace ConsoleBot
     class Program
     {
         public static ToDoUser? currentUser = null;
-        public const string version = "5.3";
+        public const string version = "5.4";
         public const string created_date = "20-08-2025";
-        public const string updated_date = "04-12-2025";
-        public const string whatsNew_text = "Реализация списков, сценариев AddList, DeleteList";
+        public const string updated_date = "16-12-2025";
+        public const string whatsNew_text = "Реализация сценария DeleteTask и пагинации";
 
         public static async Task Main()
         {
@@ -45,6 +45,7 @@ namespace ConsoleBot
                     new AddTaskScenario(userService, todoService, contextRepository, toDoListService),
                     new AddListScenario(userService, toDoListService, todoService, contextRepository),
                     new DeleteListScenario (userService, toDoListService, todoService, contextRepository),
+                    new DeleteTaskScenario (userService, toDoListService, todoService, contextRepository),
                 };
 
                 // Бот и обработчики

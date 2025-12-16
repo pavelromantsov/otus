@@ -12,7 +12,6 @@ namespace ConsoleBot.Scenarios
         private IScenarioContextRepository _contextRepository;
         private readonly ToDoService _toDoService;
 
-
         public AddListScenario(IUserService userService, IToDoListService toDoListService, ToDoService toDoService, IScenarioContextRepository contextRepository)
         {
             _userService = userService;

@@ -111,9 +111,9 @@ namespace ConsoleBot.Scenarios
 
                             var user = (ToDoUser)context.Data["User"];
                             var tasks = await _toDoService.GetByUserIdAndList(user.UserId, listToDelete.Id, cancellationToken);
-                            foreach (var task in tasks)
+                            foreach (var taskId in tasks.Select(t => t.Id))
                             {
-                                _toDoService.Delete(task.Id, cancellationToken);
+                                _toDoService.Delete(taskId, cancellationToken);
                             }
 
                             await _toDoListService.Delete(listToDelete.Id, cancellationToken);

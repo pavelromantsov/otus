@@ -3,6 +3,7 @@
     public class CallbackDto
     {
         public string Action { get; set; } //с помощью него будет определять за какое действие отвечает кнопка
+        
         public CallbackDto(string action) 
         { 
             Action = action; 

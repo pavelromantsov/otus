@@ -44,24 +44,32 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
         // Возвращает все задачи пользователя
         public async Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(Guid userId, CancellationToken cancellationToken)
-        {
-            await _semaphore.WaitAsync(cancellationToken); // ждём освобождения семафора
+                {
+            await _semaphore.WaitAsync(cancellationToken);
             try
             {
                 var directory = Path.Combine(_baseDirectory, userId.ToString());
                 if (!Directory.Exists(directory))
                     return Array.Empty<ToDoItem>();
+                
+                //LINQ
+                var files = Directory
+                    .EnumerateFiles(directory, "*.json")
+                    .ToList();
 
-                var files = Directory.EnumerateFiles(directory, "*.json").Select(file => file.Replace(".json", ""));
-                var result = await Task.WhenAll(files.Select(async f =>
-                {
-                    var content = await File.ReadAllTextAsync(f + ".json", cancellationToken);
-                    return JsonSerializer.Deserialize<ToDoItem>(content)!;
-                }));
+                var result = await Task.WhenAll(
+                    files.Select(async f =>
+                    {
+                        var content = await File.ReadAllTextAsync(f, cancellationToken);
+                        return JsonSerializer.Deserialize<ToDoItem>(content)!;
+                    }));
 
                 return result.ToList();
             }
-            finally {_semaphore.Release();}
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         // Возвращает активную задачу пользователя

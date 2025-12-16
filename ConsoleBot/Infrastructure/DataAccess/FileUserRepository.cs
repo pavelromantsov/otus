@@ -48,16 +48,20 @@ namespace ConsoleBot.Infrastructure.DataAccess
 
         // Вернуть всех пользователей
         public async Task<List<ToDoUser>> GetAllUsersAsync(long telegramUserId, CancellationToken cancellationToken)
-        {
-
-                var files = Directory.EnumerateFiles(_baseDirectory, "*.json");
-                var result =await Task.WhenAll(files.Select(async f =>
+         {
+            var files = Directory.EnumerateFiles(_baseDirectory, "*.json").ToList();
+            //LINQ
+            var result = await Task.WhenAll(
+                files.Select(async f =>
                 {
                     var content = await File.ReadAllTextAsync(f, cancellationToken);
-                    return JsonSerializer.Deserialize<ToDoUser>(content)!;
+                    return JsonSerializer.Deserialize<ToDoUser>(content);
                 }));
-                return result.ToList();
 
+            return result
+                .Where(u => u != null)
+                .Cast<ToDoUser>()
+                .ToList();
         }
 
         public async Task<ToDoUser?> GetUserAsync(long userId,  CancellationToken cancellationToken)

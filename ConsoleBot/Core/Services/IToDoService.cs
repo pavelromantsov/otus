@@ -15,6 +15,7 @@ namespace ConsoleBot.Core.Services
         int ParseAndValidateInt(string? str, int min, int max, CancellationToken cancellationToken);
         Task ValidateStringAsync(string? str, CancellationToken cancellationToken);
         Task<IReadOnlyList<ToDoItem>> GetByUserIdAndList(Guid userId, Guid? listId, CancellationToken ct);
+        Task<ToDoItem?> Get(Guid toDoItemId, CancellationToken ct);
     }
 
 }

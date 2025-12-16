@@ -18,7 +18,8 @@
         None,
         AddTask,
         AddList,
-        DeleteList
+        DeleteList,
+        DeleteTask
     }
 
     public enum ScenarioResult
