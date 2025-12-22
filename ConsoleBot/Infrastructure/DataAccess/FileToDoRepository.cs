@@ -43,9 +43,9 @@ namespace ConsoleBot.Infrastructure.DataAccess
             }
         }
         // Возвращает все задачи пользователя
-        public async Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> GetAllByUserIdAsync(Guid userId, CancellationToken ct)
                 {
-            await _semaphore.WaitAsync(cancellationToken);
+            await _semaphore.WaitAsync(ct);
             try
             {
                 var directory = Path.Combine(_baseDirectory, userId.ToString());
@@ -60,7 +60,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
                 var result = await Task.WhenAll(
                     files.Select(async f =>
                     {
-                        var content = await File.ReadAllTextAsync(f, cancellationToken);
+                        var content = await File.ReadAllTextAsync(f, ct);
                         return JsonSerializer.Deserialize<ToDoItem>(content)!;
                     }));
 
@@ -73,16 +73,16 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
 
         // Возвращает активную задачу пользователя
-        public async Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(Guid userId, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> GetActiveByUserIdAsync(Guid userId, CancellationToken ct)
         {
-                    var allTasks = await GetAllByUserIdAsync(userId, cancellationToken);
+                    var allTasks = await GetAllByUserIdAsync(userId, ct);
                     return allTasks.Where(t => t.State == ToDoItemState.Active).ToList();
         }
 
         // Возвращает задачу по ID
-        public async Task<ToDoItem?> GetAsync(Guid id, CancellationToken cancellationToken)
+        public async Task<ToDoItem?> GetAsync(Guid id, CancellationToken ct)
         {
-            await _semaphore.WaitAsync(cancellationToken); // ждём освобождения семафора
+            await _semaphore.WaitAsync(ct); // ждём освобождения семафора
             try
             {
                 var directories = Directory.EnumerateDirectories(_baseDirectory);
@@ -91,7 +91,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
                     var filePath = Path.Combine(dir, $"{id}.json");
                     if (File.Exists(filePath))
                     {
-                        var content = await File.ReadAllTextAsync(filePath, cancellationToken);
+                        var content = await File.ReadAllTextAsync(filePath, ct);
                         return JsonSerializer.Deserialize<ToDoItem>(content)!;
                     }
                 }
@@ -101,26 +101,26 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
 
         // Добавляет задачу
-        public async Task AddAsync(ToDoItem item, CancellationToken cancellationToken)
+        public async Task AddAsync(ToDoItem item, CancellationToken ct)
         {
 
                 var directory = Path.Combine(_baseDirectory, item.User.UserId.ToString());
                 Directory.CreateDirectory(directory); // Создаем папку пользователя, если её нет
                 var filePath = Path.Combine(directory, $"{item.Id}.json");
                 var serializedData = JsonSerializer.Serialize(item);
-                await File.WriteAllTextAsync(filePath, serializedData, cancellationToken);
+                await File.WriteAllTextAsync(filePath, serializedData, ct);
                 _index[item.Id] = item.User.UserId;
                 SaveIndex();
         }
 
         // Обновляет задачу
-        public async Task UpdateAsync(ToDoItem item, CancellationToken cancellationToken)
+        public async Task UpdateAsync(ToDoItem item, CancellationToken ct)
         {
-            await AddAsync(item, cancellationToken); // Сохраняем заново файл с обновлёнными данными
+            await AddAsync(item, ct); // Сохраняем заново файл с обновлёнными данными
         }
 
         // Удаляет задачу
-        public void Delete(Guid id, CancellationToken cancellationToken)
+        public void Delete(Guid id, CancellationToken ct)
         {
                 
                 if (_index.TryRemove(id, out var userId))
@@ -136,22 +136,22 @@ namespace ConsoleBot.Infrastructure.DataAccess
         }
 
         // Проверяет, существует ли задача с таким именем у пользователя
-        public async Task<bool> ExistsByNameAsync(Guid userId, string name, CancellationToken cancellationToken)
+        public async Task<bool> ExistsByNameAsync(Guid userId, string name, CancellationToken ct)
         {
-            var tasks = await GetAllByUserIdAsync(userId, cancellationToken);
+            var tasks = await GetAllByUserIdAsync(userId, ct);
             return tasks.Any(t => t.Name == name);
         }
 
         // Количество активных задач пользователя
-        public async Task<int> CountActiveAsync(Guid userId, CancellationToken cancellationToken)
+        public async Task<int> CountActiveAsync(Guid userId, CancellationToken ct)
         {
-            var tasks = await GetAllByUserIdAsync(userId, cancellationToken);
+            var tasks = await GetAllByUserIdAsync(userId, ct);
             return tasks.Count(t => t.State == ToDoItemState.Active);
         }
 
-        public async Task<IReadOnlyList<ToDoItem>> Find(Guid userId, Func<ToDoItem, bool> predicate, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<ToDoItem>> Find(Guid userId, Func<ToDoItem, bool> predicate, CancellationToken ct)
         {
-            var tasks = await GetAllByUserIdAsync(userId, cancellationToken);
+            var tasks = await GetAllByUserIdAsync(userId, ct);
             return tasks.Where(task => task.User.UserId == userId && predicate(task)).ToList();
         }
     }

@@ -267,12 +267,9 @@ namespace ConsoleBot.TelegramBot
                     break;
 
                 case "deletelist":
+                case "deletelist_yes":
+                case "deletelist_no":
                     await HandleDeleteListCallback(callbackQuery, context, cancellationToken);
-                    break;
-
-                case "yes":
-                case "no":
-                    await HandleYesNoCallback(callbackQuery, context, cancellationToken);
                     break;
 
                 case "selectlist":
@@ -288,12 +285,9 @@ namespace ConsoleBot.TelegramBot
                     break;
 
                 case "deletetask":
-                    await HandleDeleteTaskCallback(callbackQuery, cancellationToken);
-                    break;
-
                 case "deletetask_yes":
                 case "deletetask_no":
-                    await HandleDeleteTaskApproveCallback(callbackQuery, cancellationToken);
+                    await HandleDeleteTaskCallback(callbackQuery, cancellationToken);
                     break;
 
                 case "show_completed":
@@ -326,6 +320,7 @@ namespace ConsoleBot.TelegramBot
             if (context == null || context.CurrentScenario != ScenarioType.DeleteList)
             {
                 var deleteContext = new ScenarioContext(ScenarioType.DeleteList);
+                deleteContext.Data["Callback"] = callbackQuery;
                 await _contextRepository.SetContext(callbackQuery.From.Id, deleteContext, ct);
                 await ProcessScenario(deleteContext, callbackQuery.Message!, ct);
             }
@@ -337,15 +332,6 @@ namespace ConsoleBot.TelegramBot
             }
         }
 
-        private async Task HandleYesNoCallback(CallbackQuery callbackQuery, ScenarioContext? context, CancellationToken ct)
-        {
-            if (context != null && context.CurrentScenario == ScenarioType.DeleteList)
-            {
-                context.Data["Callback"] = callbackQuery;
-                await _contextRepository.SetContext(callbackQuery.From.Id, context, ct);
-                await ProcessScenario(context, callbackQuery.Message!, ct);
-            }
-        }
 
         private async Task HandleSelectListCallback(CallbackQuery callbackQuery, ScenarioContext? context, CancellationToken ct)
         {
@@ -419,42 +405,51 @@ namespace ConsoleBot.TelegramBot
             await _botClient.AnswerCallbackQuery(callbackQuery.Id, "Задача выполнена", cancellationToken: ct);
         }
 
-        private async Task HandleDeleteTaskApproveCallback(CallbackQuery callbackQuery, CancellationToken ct)
-        {
-            var context = await _contextRepository.GetContext(callbackQuery.From.Id, ct);
-            if (context != null && context.CurrentScenario == ScenarioType.DeleteTask)
-            {
-                context.Data["Callback"] = callbackQuery;
-                await _contextRepository.SetContext(callbackQuery.From.Id, context, ct);
-                await ProcessScenario(context, callbackQuery.Message!, ct);
-            }
-            else
-            {
-                await _botClient.AnswerCallbackQuery(
-                    callbackQuery.Id,
-                    "Сценарий удаления не найден",
-                    cancellationToken: ct);
-            }
-        }
         private async Task HandleDeleteTaskCallback(CallbackQuery callbackQuery, CancellationToken ct)
         {
             var dto = ToDoItemCallbackDto.FromString(callbackQuery.Data!);
-            var item = await _toDoService.Get(dto.ToDoItemId, ct);
-            if (item == null)
+            var action = dto.Action.ToLowerInvariant();
+
+            if (action == "deletetask")
             {
-                await _botClient.AnswerCallbackQuery(
-                    callbackQuery.Id,
-                    "Задача не найдена",
-                    cancellationToken: ct);
-                return;
+                // Первый клик: запускаем сценарий
+                var item = await _toDoService.Get(dto.ToDoItemId, ct);
+                if (item == null)
+                {
+                    await _botClient.AnswerCallbackQuery(
+                        callbackQuery.Id,
+                        "Задача не найдена",
+                        cancellationToken: ct);
+                    return;
+                }
+
+                var deleteTaskContext = new ScenarioContext(ScenarioType.DeleteTask);
+                deleteTaskContext.Data["ToDoItemId"] = item.Id;
+                deleteTaskContext.Data["Callback"] = callbackQuery;
+
+                await _contextRepository.SetContext(callbackQuery.From.Id, deleteTaskContext, ct);
+                await ProcessScenario(deleteTaskContext, callbackQuery.Message!, ct);
             }
-
-            var deleteTaskContext = new ScenarioContext(ScenarioType.DeleteTask);
-            deleteTaskContext.Data["ToDoItemId"] = item.Id;
-
-            await _contextRepository.SetContext(callbackQuery.From.Id, deleteTaskContext, ct);
-            await ProcessScenario(deleteTaskContext, callbackQuery.Message!, ct);
+            else if (action == "deletetask_yes" || action == "deletetask_no")
+            {
+                // Клики по yes/no: продолжаем сценарий
+                var deleteContext = await _contextRepository.GetContext(callbackQuery.From.Id, ct);
+                if (deleteContext != null && deleteContext.CurrentScenario == ScenarioType.DeleteTask)
+                {
+                    deleteContext.Data["Callback"] = callbackQuery;
+                    await _contextRepository.SetContext(callbackQuery.From.Id, deleteContext, ct);
+                    await ProcessScenario(deleteContext, callbackQuery.Message!, ct);
+                }
+                else
+                {
+                    await _botClient.AnswerCallbackQuery(
+                        callbackQuery.Id,
+                        "Сценарий удаления задачи не найден",
+                        cancellationToken: ct);
+                }
+            }
         }
+
 
         private async Task HandleShowCompletedCallback(CallbackQuery callbackQuery, ToDoUser user, CancellationToken ct)
         {
@@ -653,7 +648,6 @@ namespace ConsoleBot.TelegramBot
                 await botClient.SendMessage(update.Message.Chat, "Задачи не найдены.");
             }
         }
-     
 
         private async Task HelpCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, CancellationToken cancellationToken)
         {

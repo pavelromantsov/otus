@@ -33,11 +33,11 @@ namespace ConsoleBot.Scenarios
         public bool CanHandle(ScenarioType scenario) => scenario == ScenarioType.DeleteTask;
 
         public async Task<ScenarioResult> HandleMessageAsync(
-    ITelegramBotClient botClient,
-    ScenarioContext context,
-    Message message,
-    ToDoList? list,
-    CancellationToken ct)
+                    ITelegramBotClient botClient,
+                    ScenarioContext context,
+                    Message message,
+                    ToDoList? list,
+                    CancellationToken ct)
         {
             switch (context.CurrentStep)
             {
@@ -52,12 +52,16 @@ namespace ConsoleBot.Scenarios
 
                         var keyboard = new InlineKeyboardMarkup(new[]
                         {
-                new[]
-                {
-                    InlineKeyboardButton.WithCallbackData("✅ Да",  $"deletetask_yes|{taskId}"),
-                    InlineKeyboardButton.WithCallbackData("❌ Нет", $"deletetask_no|{taskId}")
-                }
-            });
+                            new[]
+                            {
+                                InlineKeyboardButton.WithCallbackData(
+                                    "✅ Да",
+                                    new ToDoItemCallbackDto("deletetask_yes", taskId).ToString()),
+                                InlineKeyboardButton.WithCallbackData(
+                                    "❌ Нет",
+                                    new ToDoItemCallbackDto("deletetask_no", taskId).ToString())
+                            }
+                        });
 
                         await botClient.SendMessage(
                             message.Chat.Id,
@@ -75,8 +79,8 @@ namespace ConsoleBot.Scenarios
                         if (!context.Data.TryGetValue("Callback", out var rawCb) || rawCb is not CallbackQuery cb)
                             return ScenarioResult.Completed;
 
-                        var parts = (cb.Data ?? "").Split('|', 2);
-                        var action = parts[0];
+                        var dto = ToDoItemCallbackDto.FromString(cb.Data!);
+                        var action = dto.Action.ToLowerInvariant();
 
                         if (action == "deletetask_yes")
                         {
@@ -85,7 +89,7 @@ namespace ConsoleBot.Scenarios
 
                             var item = await _toDoService.Get(taskId, ct);
                             if (item != null)
-                                _toDoService.Delete(item.Id, ct); // или await, если async
+                                _toDoService.Delete(item.Id, ct);
 
                             await botClient.EditMessageText(
                                 cb.Message!.Chat.Id,

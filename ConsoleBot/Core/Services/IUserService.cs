@@ -4,10 +4,10 @@ namespace ConsoleBot.Core.Services
 {
     public interface IUserService
     {
-        Task<ToDoUser?> GetUserAsync(Guid userId, CancellationToken cancellationToken);
-        Task<ToDoUser?>? GetUserAsync(long userId,string telegramUserName, CancellationToken cancellationToken);
-        Task<ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, CancellationToken cancellationToken);
-        Task RegisterUserAsync(long telegramUserId, CancellationToken cancellationToken);
-        Task <bool> IsUserRegistered(long userId, CancellationToken cancellationToken);
+        Task<ToDoUser?> GetUserAsync(Guid userId, CancellationToken ct);
+        Task<ToDoUser?>? GetUserAsync(long userId,string telegramUserName, CancellationToken ct);
+        Task<ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, CancellationToken ct);
+        Task RegisterUserAsync(long telegramUserId, CancellationToken ct);
+        Task <bool> IsUserRegistered(long userId, CancellationToken ct);
     }
 }
