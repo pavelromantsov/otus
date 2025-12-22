@@ -33,11 +33,11 @@ namespace ConsoleBot.Scenarios
         public bool CanHandle(ScenarioType scenario) => scenario == ScenarioType.DeleteTask;
 
         public async Task<ScenarioResult> HandleMessageAsync(
-            ITelegramBotClient botClient,
-            ScenarioContext context,
-            Message message,
-            ToDoList? list,
-            CancellationToken ct)
+    ITelegramBotClient botClient,
+    ScenarioContext context,
+    Message message,
+    ToDoList? list,
+    CancellationToken ct)
         {
             switch (context.CurrentStep)
             {
@@ -52,12 +52,12 @@ namespace ConsoleBot.Scenarios
 
                         var keyboard = new InlineKeyboardMarkup(new[]
                         {
-                        new[]
-                        {
-                            InlineKeyboardButton.WithCallbackData("✅ Да",  $"deletetask_yes|{taskId}"),
-                            InlineKeyboardButton.WithCallbackData("❌ Нет", $"deletetask_no|{taskId}")
-                        }
-                    });
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("✅ Да",  $"deletetask_yes|{taskId}"),
+                    InlineKeyboardButton.WithCallbackData("❌ Нет", $"deletetask_no|{taskId}")
+                }
+            });
 
                         await botClient.SendMessage(
                             message.Chat.Id,
@@ -66,8 +66,52 @@ namespace ConsoleBot.Scenarios
                             cancellationToken: ct);
 
                         context.CurrentStep = "Approve";
-                        await _contextRepository.SetContext(message.Chat.Id, context, ct);
+                        await _contextRepository.SetContext(message.From.Id, context, ct);
                         return ScenarioResult.Transition;
+                    }
+
+                case "Approve":
+                    {
+                        if (!context.Data.TryGetValue("Callback", out var rawCb) || rawCb is not CallbackQuery cb)
+                            return ScenarioResult.Completed;
+
+                        var parts = (cb.Data ?? "").Split('|', 2);
+                        var action = parts[0];
+
+                        if (action == "deletetask_yes")
+                        {
+                            if (!context.Data.TryGetValue("ToDoItemId", out var rawId) || rawId is not Guid taskId)
+                                return ScenarioResult.Completed;
+
+                            var item = await _toDoService.Get(taskId, ct);
+                            if (item != null)
+                                _toDoService.Delete(item.Id, ct); // или await, если async
+
+                            await botClient.EditMessageText(
+                                cb.Message!.Chat.Id,
+                                cb.Message.MessageId,
+                                "Задача удалена.",
+                                cancellationToken: ct);
+
+                            await botClient.AnswerCallbackQuery(cb.Id, "Задача удалена", cancellationToken: ct);
+                            await _contextRepository.ResetContext(cb.From.Id, ct);
+                            return ScenarioResult.Completed;
+                        }
+                        else if (action == "deletetask_no")
+                        {
+                            await botClient.EditMessageText(
+                                cb.Message!.Chat.Id,
+                                cb.Message.MessageId,
+                                "Удаление отменено.",
+                                cancellationToken: ct);
+
+                            await botClient.AnswerCallbackQuery(cb.Id, "Удаление отменено", cancellationToken: ct);
+                            await _contextRepository.ResetContext(cb.From.Id, ct);
+                            return ScenarioResult.Completed;
+                        }
+
+                        await _contextRepository.ResetContext(cb.From.Id, ct);
+                        return ScenarioResult.Completed;
                     }
 
                 default:
