@@ -1,5 +1,8 @@
 ﻿using ConsoleBot.Core.DataAccess;
+using ConsoleBot.Core.DataAccess.Models;
 using ConsoleBot.Core.Entities;
+using ConsoleBot.Infrastructure.DataAccess;
+using LinqToDB.Data;
 
 namespace ConsoleBot.Core.Services
 {
@@ -12,15 +15,17 @@ namespace ConsoleBot.Core.Services
             _repository = repository;
         }
 
-        public async Task RegisterUserAsync(long telegramUserId, CancellationToken ct)
+        public async Task RegisterUserAsync(long telegramUserId, string telegramUserName, CancellationToken ct)
         {
-            var existingUser = await _repository.GetUserByTelegramUserIdAsync(telegramUserId, ct);
-            if (existingUser != null)
+            if (telegramUserId <= 0) return;
+
+            var user = new ToDoUser
             {
-                return;
-            }
-            var newUser = new ToDoUser(telegramUserId, ct);
-            await _repository.AddAsync(newUser, ct);
+                TelegramUserId = telegramUserId,
+                TelegramUserName = telegramUserName
+            };
+
+            await _repository.AddAsync(user, ct);
         }
 
         public async Task<ToDoUser?> GetUserAsync(Guid userId, CancellationToken ct)
@@ -35,15 +40,19 @@ namespace ConsoleBot.Core.Services
 
         public ToDoUser? Add(long telegramUserId, CancellationToken ct) 
         {
-            var newUser = new ToDoUser(telegramUserId, ct);
+            var newUser = new ToDoUser();
             _repository.AddAsync(newUser, ct);
             return newUser;
         }
 
         public async Task<ToDoUser?>? GetUserAsync(long userId, string telegramUserName, CancellationToken ct)
         {
-            return await _repository.GetUserAsync(userId, ct);
+            var user = await _repository.GetUserByTelegramUserIdAsync(userId, ct);
+            if (user != null) return user;
+
+            return null; 
         }
+
         public async Task <bool> IsUserRegistered(long telegramUserId, CancellationToken ct)
         {
             var user = await _repository.GetUserByTelegramUserIdAsync(telegramUserId,  ct);

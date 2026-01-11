@@ -8,73 +8,79 @@ using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 
+
 namespace ConsoleBot
 {
     class Program
     {
         public static ToDoUser? currentUser = null;
-        public const string version = "5.4";
+        public const string version = "6.0";
         public const string created_date = "20-08-2025";
-        public const string updated_date = "16-12-2025";
-        public const string whatsNew_text = "Реализация сценария DeleteTask и пагинации";
+        public const string updated_date = "11-01-2026";
+        public const string whatsNew_text = "Подключена база данных PostgeSQL 18";
 
         public static async Task Main()
         {
             try
             {
-                //чтение настроек
+                // Чтение настроек
                 var configuration = new ConfigurationBuilder()
-                    .AddJsonFile("appsettings.json", true, true).Build();
-                string botKey = configuration.GetSection("Telegram_key").Value;
+                    .AddJsonFile("appsettings.json", true, true)
+                    .Build();
+
+                string botKey = configuration.GetSection("Telegram_key").Value
+                    ?? throw new InvalidOperationException("Telegram_key not found");
                 
-                //репозитории и сервисы
-                var userRepo = new FileUserRepository("data/users");
-                var todoRepo = new FileToDoRepository("data/todos");
-                var todoListRepo = new FileToDoListRepository("data/lists");
+                
+                // SQL репозитории вместо File
+                var factory = new DataContextFactory(configuration);
+                var userRepo = new SqlUserRepository(factory);
+                var todoRepo = new SqlToDoRepository(factory);
+                var todoListRepo = new SqlToDoListRepository(factory);
+
+                // Сервисы (автоматически используют SQL репозитории)
                 var userService = new UserService(userRepo);
                 var todoService = new ToDoService(todoRepo);
                 var todoReportService = new ToDoReportService(todoRepo);
                 var toDoListService = new ToDoListService(todoListRepo);
 
-                // Создаем контекст-хранилище сценариев
+                // Контекст сценариев
                 var contextRepository = new InMemoryScenarioContextRepository();
 
-                // Добавляем сценарий
-                var scenarios = new List<IScenario> 
-                {
-                    new AddTaskScenario(userService, todoService, contextRepository, toDoListService),
-                    new AddListScenario(userService, toDoListService, todoService, contextRepository),
-                    new DeleteListScenario (userService, toDoListService, todoService, contextRepository),
-                    new DeleteTaskScenario (userService, toDoListService, todoService, contextRepository),
-                };
+                // Сценарии (остаются те же)
+                var scenarios = new List<IScenario>
+            {
+                new AddTaskScenario(userService, todoService, contextRepository, toDoListService),
+                new AddListScenario(userService, toDoListService, todoService, contextRepository),
+                new DeleteListScenario(userService, toDoListService, todoService, contextRepository),
+                new DeleteTaskScenario(userService, toDoListService, todoService, contextRepository),
+            };
 
-                // Бот и обработчики
+                // Бот
                 var botClient = new TelegramBotClient(botKey);
-                var updateHandler = new UpdateHandler(botClient, userService, todoService, todoReportService, scenarios, contextRepository, toDoListService);
-                
-                //Подписываемся на события
-                updateHandler.OnHandleUpdateStarted += (message) => Console.WriteLine($"Началась обработка сообщения '{message}'");
-                updateHandler.OnHandleUpdateCompleted += (message) => Console.WriteLine($"Закончилась обработка сообщения '{message}'");
-                
-                // Конфигурация и старт бота
+                var updateHandler = new UpdateHandler(botClient, userService, todoService,
+                    todoReportService, scenarios, contextRepository, toDoListService);
+
+                // События
+                updateHandler.OnHandleUpdateStarted += (message) =>
+                    Console.WriteLine($"Началась обработка: '{message}'");
+                updateHandler.OnHandleUpdateCompleted += (message) =>
+                    Console.WriteLine($"Закончилась обработка: '{message}'");
+
+                // Запуск
                 var cts = new CancellationTokenSource();
                 var receiverOptions = new ReceiverOptions
                 {
-                    AllowedUpdates = new[]
-                    {
-                        UpdateType.Message,
-                        UpdateType.CallbackQuery  
-                    },
+                    AllowedUpdates = new[] { UpdateType.Message, UpdateType.CallbackQuery },
                     DropPendingUpdates = true
                 };
-                botClient.StartReceiving(updateHandler, receiverOptions, cts.Token);
-                
-                // Получаем информацию о боте
-                var me = await botClient.GetMe();
-                Console.WriteLine($"{me.FirstName} запущен!");
 
-                // Выход при нажатии клавиши A
-                Console.WriteLine("Нажмите клавишу A для выхода");
+                botClient.StartReceiving(updateHandler, receiverOptions, cts.Token);
+
+                var me = await botClient.GetMe();
+                Console.WriteLine($"Телеграм-бот {me.FirstName} v{version} создан {created_date}, обновлен {updated_date}. {whatsNew_text}");
+
+                Console.WriteLine("Нажмите 'A' для выхода");
                 while (true)
                 {
                     var key = Console.ReadKey(true);
@@ -83,17 +89,12 @@ namespace ConsoleBot
                         cts.Cancel();
                         break;
                     }
-                    else
-                    {
-                        Console.WriteLine($"{me.Username} работает");
-                    }
                 }
-                // Очистка
-                cts.Cancel();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Произошла ошибка: {ex.Message}");
+                Console.WriteLine($"❌ Ошибка: {ex.Message}");
+                Console.WriteLine($"Stack: {ex.StackTrace}");
             }
         }
     }

@@ -3,7 +3,7 @@
 -- =============================================
 
 -- Connect to database
-\c "ToDoList";
+--\c "ToDoList";
 
 -- =============================================
 -- 1. Get user by Telegram User ID

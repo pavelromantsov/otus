@@ -8,6 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Infrastructure\DataAccess\FileToDoListRepository.cs" />
+    <Compile Remove="Infrastructure\DataAccess\FileToDoRepository.cs" />
+    <Compile Remove="Infrastructure\DataAccess\FileUserRepository.cs" />
     <Compile Remove="Infrastructure\DataAccess\InMemoryToDoRepository.cs" />
     <Compile Remove="Infrastructure\DataAccess\InMemoryUserRepository.cs" />
   </ItemGroup>
@@ -20,11 +23,13 @@
 	  
 	  
   <ItemGroup>
+    <PackageReference Include="linq2db" Version="6.1.0" />
+    <PackageReference Include="linq2db.PostgreSQL" Version="6.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.10" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.10" />
-    <PackageReference Include="Microsoft.Graph" Version="5.95.0" />
+    <PackageReference Include="Npgsql" Version="10.0.1" />
     <PackageReference Include="Telegram.Bot" Version="22.7.2" />
   </ItemGroup>
 

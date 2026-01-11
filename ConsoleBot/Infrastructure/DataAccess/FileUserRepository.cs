@@ -73,7 +73,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
                 var filePath = Path.Combine(_baseDirectory, $"{user.UserId}.json");
                 if (!File.Exists(filePath))
                 {
-                    var newUser = new ToDoUser(userId, ct);
+                    var newUser = new ToDoUser();
                     await AddAsync(newUser, ct); // Сохраняем пользователя в файл
                     return newUser;
                 }

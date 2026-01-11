@@ -41,7 +41,7 @@ namespace ConsoleBot.Scenarios
                     {
                         var user = await _userService
                             .GetUserByTelegramUserIdAsync(message.Chat.Id, ct)
-                            ?? await RegisterAndGetUser(message.Chat.Id, ct);
+                            ?? await RegisterAndGetUser(message.Chat.Id, message.Chat.Username, ct);
 
                         context.Data["User"] = user;
 
@@ -205,9 +205,9 @@ namespace ConsoleBot.Scenarios
             }
         }
 
-        private async Task<ToDoUser> RegisterAndGetUser(long telegramUserId, CancellationToken ct)
+        private async Task<ToDoUser> RegisterAndGetUser(long telegramUserId, string telegramUserName, CancellationToken ct)
         {
-            await _userService.RegisterUserAsync(telegramUserId, ct);
+            await _userService.RegisterUserAsync(telegramUserId, telegramUserName, ct);
             return await _userService.GetUserByTelegramUserIdAsync(telegramUserId, ct);
         }
     }

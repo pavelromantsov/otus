@@ -1,5 +1,6 @@
 ﻿using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
+using ConsoleBot.Infrastructure.DataAccess;
 
 namespace ConsoleBot.Core.Services
 {
@@ -19,9 +20,16 @@ namespace ConsoleBot.Core.Services
                 throw new ArgumentException("Имя списка не может превышать 10 символов.");
 
             if (await _todoListRepository.ExistsByName(user.UserId, name, ct))
-                throw new ArgumentException("Список с таким именем уже существует у данного пользователя.");
+                throw new ArgumentException("Список с таким именем уже существует.");
 
-            var newList = new ToDoList(user, name);
+            var newList = new ToDoList
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+                CreatedAt = DateTime.UtcNow,
+                User = user  
+            };
+
             await _todoListRepository.Add(newList, ct);
             return newList;
         }

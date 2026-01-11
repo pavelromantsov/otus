@@ -3,7 +3,7 @@
 -- =============================================
 
 -- Connect to database
-\c "ToDoList";
+--\c "ToDoList";
 
 -- =============================================
 -- Insert Test Data into ToDoUser

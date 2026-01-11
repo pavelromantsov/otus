@@ -6,13 +6,6 @@
         public string TelegramUserName { get; set; }
         public DateTime RegisteredAt { get; set; }
         public long TelegramUserId { get; set; }
-        public ToDoUser() { }
-        public ToDoUser(long telegramUserId, CancellationToken cancellationToken)
-        {
-            UserId = Guid.NewGuid();
-            TelegramUserName = TelegramUserName;
-            RegisteredAt = DateTime.UtcNow;
-            TelegramUserId = telegramUserId;
-        }
+
     }
 }

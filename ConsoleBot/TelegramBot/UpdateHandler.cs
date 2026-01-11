@@ -57,16 +57,34 @@ namespace ConsoleBot.TelegramBot
             {
                 if (update.Message == null)
                     return;
-
                 var chatId = message.Chat.Id;
-                var userId = message.From.Id;
 
-                var user = await _userService.GetUserAsync(message.From.Id, message.From.FirstName, cancellationToken);
+                var telegramId = message.From?.Id ?? 0;
+                var firstName = message.From?.FirstName ?? "Unknown";
+
+                if (telegramId == 0)
+                {
+                    await _botClient.SendMessage(chatId, "Ошибка: не удалось определить пользователя.",
+                        cancellationToken: cancellationToken);
+                    return;
+                }
+
+
+                var user = await _userService.GetUserAsync(telegramId, firstName, cancellationToken);
                 if (user == null)
                 {
-                    await _userService.RegisterUserAsync(message.From.Id, cancellationToken);
-                    user = await _userService.GetUserAsync(message.From.Id, message.From.FirstName, cancellationToken);
+                    await _userService.RegisterUserAsync(telegramId, firstName, cancellationToken);
+                    user = await _userService.GetUserAsync(telegramId, firstName, cancellationToken);
                 }
+
+                if (user == null)
+                {
+                    await _botClient.SendMessage(message.Chat.Id,
+                        "Ошибка регистрации пользователя. Попробуйте /start позже.", cancellationToken: cancellationToken);
+                    return;
+                }
+
+                var userId = message.From.Id;
 
                 var keyboardMarkup = CreateKeyboard(userId, cancellationToken);
                 var keyboard = new ReplyKeyboardMarkup("/addtask", "/show", "/report");
@@ -131,6 +149,11 @@ namespace ConsoleBot.TelegramBot
 
         private async Task StartCommand(ITelegramBotClient botClient, Update update, long chat, ToDoUser user, CancellationToken cancellationToken)
         {
+            if (user == null)
+            {
+                await botClient.SendMessage(update.Message.Chat, "Пользователь не найден. Используйте /start.", cancellationToken: cancellationToken);
+                return;
+            }
             var keyboard = new ReplyKeyboardMarkup();
             await botClient.SendMessage(update.Message.Chat, $"Привет, {user.TelegramUserName}! " +
                 $"Я твой помощник по управлению задачами.");
@@ -240,7 +263,13 @@ namespace ConsoleBot.TelegramBot
 
         private async Task OnCallbackQuery(Update update, CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
-            var user = await _userService.GetUserByTelegramUserIdAsync(callbackQuery.From.Id, cancellationToken);
+            var telegramId = callbackQuery.From?.Id ?? 0;
+            if (telegramId == 0)
+            {
+                await _botClient.AnswerCallbackQuery(callbackQuery.Id, "Ошибка пользователя", cancellationToken: cancellationToken);
+                return;
+            }
+            var user = await _userService.GetUserByTelegramUserIdAsync(telegramId, cancellationToken);
             if (user == null)
             {
                 await _botClient.AnswerCallbackQuery(
@@ -412,7 +441,6 @@ namespace ConsoleBot.TelegramBot
 
             if (action == "deletetask")
             {
-                // Первый клик: запускаем сценарий
                 var item = await _toDoService.Get(dto.ToDoItemId, ct);
                 if (item == null)
                 {
@@ -432,7 +460,6 @@ namespace ConsoleBot.TelegramBot
             }
             else if (action == "deletetask_yes" || action == "deletetask_no")
             {
-                // Клики по yes/no: продолжаем сценарий
                 var deleteContext = await _contextRepository.GetContext(callbackQuery.From.Id, ct);
                 if (deleteContext != null && deleteContext.CurrentScenario == ScenarioType.DeleteTask)
                 {

@@ -1,7 +1,7 @@
 ﻿using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Exceptions;
-using Microsoft.Graph.Models;
+
 
 
 namespace ConsoleBot.Core.Services
@@ -29,11 +29,22 @@ namespace ConsoleBot.Core.Services
 
         public async Task<ToDoItem> AddAsync(ToDoUser user, string name, DateTime deadline, ToDoList? list, CancellationToken ct)
         {
+            // проверка на дубликат
             if (await _repository.ExistsByNameAsync(user.UserId, name, ct))
-            {
                 throw new DuplicateTaskException(name);
-            }
-            var item = new ToDoItem(user, name, deadline, list);
+
+            var item = new ToDoItem
+            {
+                Id = Guid.NewGuid(),
+                Name = name,              
+                User = user,              
+                List = list,              
+                Deadline = deadline,
+                State = ToDoItemState.Active,
+                CreatedAt = DateTime.UtcNow,
+                StateChangedAt = null
+            };
+
             await _repository.AddAsync(item, ct);
             return item;
         }
@@ -90,9 +101,9 @@ namespace ConsoleBot.Core.Services
         }
 
         public async Task<IReadOnlyList<ToDoItem>> GetByUserIdAndList(
-    Guid userId,
-    Guid? listId,
-    CancellationToken cancellationToken)
+                    Guid userId,
+                    Guid? listId,
+                    CancellationToken cancellationToken)
         {
             var items = await _repository.GetAllByUserIdAsync(userId, cancellationToken);
             IEnumerable<ToDoItem> filtered = items;
