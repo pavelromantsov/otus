@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using ConsoleBot.Core.Entities;
+﻿using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Services;
 using ConsoleBot.Helpers;
 using ConsoleBot.Scenarios;
@@ -113,6 +112,7 @@ namespace ConsoleBot.TelegramBot
                         break;
                     case "/addtask":
                         context = new ScenarioContext(ScenarioType.AddTask);
+                        context.Data["UserId"] = message.Chat.Id;
                         var addTaskScenario = new AddTaskScenario(_userService, _toDoService, _contextRepository, _toDoListService);
                         await _contextRepository.SetContext(userId, context, cancellationToken);
                         await ProcessScenario(context, message, cancellationToken);
@@ -340,6 +340,7 @@ namespace ConsoleBot.TelegramBot
         private async Task HandleAddListCallback(CallbackQuery callbackQuery, CancellationToken ct)
         {
             var addListContext = new ScenarioContext(ScenarioType.AddList);
+            addListContext.Data["UserId"] = callbackQuery.From.Id;
             await _contextRepository.SetContext(callbackQuery.From.Id, addListContext, ct);
             await ProcessScenario(addListContext, callbackQuery.Message!, ct);
         }
@@ -349,6 +350,7 @@ namespace ConsoleBot.TelegramBot
             if (context == null || context.CurrentScenario != ScenarioType.DeleteList)
             {
                 var deleteContext = new ScenarioContext(ScenarioType.DeleteList);
+                deleteContext.Data["UserId"] = callbackQuery.From.Id;
                 deleteContext.Data["Callback"] = callbackQuery;
                 await _contextRepository.SetContext(callbackQuery.From.Id, deleteContext, ct);
                 await ProcessScenario(deleteContext, callbackQuery.Message!, ct);
@@ -360,7 +362,6 @@ namespace ConsoleBot.TelegramBot
                 await ProcessScenario(context, callbackQuery.Message!, ct);
             }
         }
-
 
         private async Task HandleSelectListCallback(CallbackQuery callbackQuery, ScenarioContext? context, CancellationToken ct)
         {
@@ -452,6 +453,7 @@ namespace ConsoleBot.TelegramBot
                 }
 
                 var deleteTaskContext = new ScenarioContext(ScenarioType.DeleteTask);
+                deleteTaskContext.Data["UserId"] = callbackQuery.From.Id;
                 deleteTaskContext.Data["ToDoItemId"] = item.Id;
                 deleteTaskContext.Data["Callback"] = callbackQuery;
 
@@ -476,7 +478,6 @@ namespace ConsoleBot.TelegramBot
                 }
             }
         }
-
 
         private async Task HandleShowCompletedCallback(CallbackQuery callbackQuery, ToDoUser user, CancellationToken ct)
         {

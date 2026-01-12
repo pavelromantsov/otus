@@ -1,4 +1,5 @@
-﻿using ConsoleBot.Core.Entities;
+﻿using ConsoleBot.BackgroundTasks;
+using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Services;
 using ConsoleBot.Infrastructure.DataAccess;
 using ConsoleBot.Scenarios;
@@ -14,10 +15,10 @@ namespace ConsoleBot
     class Program
     {
         public static ToDoUser? currentUser = null;
-        public const string version = "6.0";
+        public const string version = "6.1";
         public const string created_date = "20-08-2025";
-        public const string updated_date = "11-01-2026";
-        public const string whatsNew_text = "Подключена база данных PostgeSQL 18";
+        public const string updated_date = "12-01-2026";
+        public const string whatsNew_text = "Реализованы фоновые задачи";
 
         public static async Task Main()
         {
@@ -47,7 +48,7 @@ namespace ConsoleBot
                 // Контекст сценариев
                 var contextRepository = new InMemoryScenarioContextRepository();
 
-                // Сценарии (остаются те же)
+                // Сценарии 
                 var scenarios = new List<IScenario>
             {
                 new AddTaskScenario(userService, todoService, contextRepository, toDoListService),
@@ -69,6 +70,15 @@ namespace ConsoleBot
 
                 // Запуск
                 var cts = new CancellationTokenSource();
+                var backgroundRunner = new BackgroundTaskRunner();
+                var resetScenarioTask = new ResetScenarioBackgroundTask(
+                    resetScenarioTimeout: TimeSpan.FromHours(1),
+                    scenarioRepository: contextRepository,
+                    bot: botClient);
+
+                backgroundRunner.AddTask(resetScenarioTask);
+                backgroundRunner.StartTasks(cts.Token);
+
                 var receiverOptions = new ReceiverOptions
                 {
                     AllowedUpdates = new[] { UpdateType.Message, UpdateType.CallbackQuery },
@@ -86,6 +96,7 @@ namespace ConsoleBot
                     var key = Console.ReadKey(true);
                     if (key.Key == ConsoleKey.A)
                     {
+                        await backgroundRunner.StopTasks(CancellationToken.None);
                         cts.Cancel();
                         break;
                     }
