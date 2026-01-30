@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ConsoleBot.TelegramBot.Dto
+﻿namespace ConsoleBot.TelegramBot.Dto
 {
-    public class ToDoItemCallbackDto:CallbackDto
+    public class ToDoItemCallbackDto : CallbackDto
     {
         public Guid? ToDoListId { get; set; }
 
         public Guid ToDoItemId { get; set; }
 
-        public ToDoItemCallbackDto (string action, Guid toDoItemId) : base (action)
+        public ToDoItemCallbackDto(string action, Guid toDoItemId) : base(action)
         {
             ToDoItemId = toDoItemId;
         }

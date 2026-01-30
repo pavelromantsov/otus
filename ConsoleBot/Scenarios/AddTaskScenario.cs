@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Threading;
 using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Exceptions;
 using ConsoleBot.Core.Services;
@@ -48,7 +47,7 @@ namespace ConsoleBot.Scenarios
                     try
                     {
                         var newTaskName = message.Text?.Trim();
-                            await _toDoService.ValidateStringAsync(newTaskName, ct);
+                        await _toDoService.ValidateStringAsync(newTaskName, ct);
 
                         context.Data["TaskName"] = newTaskName;
                         await SelectListStep(botClient, context, message, user, ct);
@@ -98,7 +97,6 @@ namespace ConsoleBot.Scenarios
                     }
 
                 default:
-                    // на случай неожиданного значения шага
                     await botClient.SendMessage(message.Chat.Id,
                         "Что-то пошло не так. Начнём с начала. Введите название задачи:",
                         cancellationToken: ct);
@@ -113,7 +111,6 @@ namespace ConsoleBot.Scenarios
             var lists = await _toDoListService.GetUserLists(user.UserId, ct);
             var rows = new List<InlineKeyboardButton[]>
         {
-            // сначала "Без списка"
             new[]
             {
                 InlineKeyboardButton.WithCallbackData(
@@ -132,7 +129,7 @@ namespace ConsoleBot.Scenarios
             });
             }
 
-            await botClient.SendMessage(message.Chat.Id, "Выберите список:",replyMarkup: new InlineKeyboardMarkup(rows),cancellationToken: ct);
+            await botClient.SendMessage(message.Chat.Id, "Выберите список:", replyMarkup: new InlineKeyboardMarkup(rows), cancellationToken: ct);
         }
         public async Task HandleCallbackQueryAsync(ITelegramBotClient botClient, ScenarioContext context, CallbackQuery callbackQuery, CancellationToken ct)
         {
@@ -154,8 +151,8 @@ namespace ConsoleBot.Scenarios
                 await _contextRepository.SetContext(callbackQuery.From.Id, context, ct);
                 await botClient.SendMessage(callbackQuery.Message!.Chat.Id, "Введите дедлайн в формате dd.MM.yyyy:", cancellationToken: ct);
             }
-     
-        }   
+
+        }
     }
 }
 

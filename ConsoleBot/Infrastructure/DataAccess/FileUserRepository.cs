@@ -7,12 +7,12 @@ namespace ConsoleBot.Infrastructure.DataAccess
     public class FileUserRepository : IUserRepository
     {
         private readonly string _baseDirectory;
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); // разрешаем только одному потоку читать/писать одновременно
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1); 
 
         public FileUserRepository(string baseDirectory)
         {
             _baseDirectory = baseDirectory;
-            Directory.CreateDirectory(baseDirectory); // Создаем директорию, если её нет
+            Directory.CreateDirectory(baseDirectory); 
         }
 
         // Получить пользователя по UserId
@@ -74,7 +74,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
                 if (!File.Exists(filePath))
                 {
                     var newUser = new ToDoUser();
-                    await AddAsync(newUser, ct); // Сохраняем пользователя в файл
+                    await AddAsync(newUser, ct); 
                     return newUser;
                 }
                 var content = await File.ReadAllTextAsync(filePath, ct);

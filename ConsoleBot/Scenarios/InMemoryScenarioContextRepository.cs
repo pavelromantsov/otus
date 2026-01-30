@@ -2,7 +2,7 @@
 
 namespace ConsoleBot.Scenarios
 {
-    public class InMemoryScenarioContextRepository:IScenarioContextRepository
+    public class InMemoryScenarioContextRepository : IScenarioContextRepository
     {
         private readonly ConcurrentDictionary<long, ScenarioContext> _contexts = new ConcurrentDictionary<long, ScenarioContext>();
 

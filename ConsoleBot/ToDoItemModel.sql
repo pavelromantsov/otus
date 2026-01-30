@@ -28,3 +28,19 @@ CREATE TABLE public."ToDoItemModel" (
     CONSTRAINT "FK_ToDoItemModel_ToDoListModel" 
         FOREIGN KEY ("ListId") REFERENCES public."ToDoListModel"("Id") ON DELETE SET NULL
 );
+
+--Таблица Notifications (с индексом на UserId)
+CREATE TABLE public."Notifications" (
+    "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    "user_id" uuid NOT NULL REFERENCES public."ToDoUser"("UserId") ON DELETE CASCADE,
+    "type" text NOT NULL,
+    "text" text NOT NULL,
+    "scheduled_at" timestamptz NOT NULL,
+    "is_notified" boolean NOT NULL DEFAULT false,
+    "notified_at" timestamptz
+);
+
+-- Индексы
+CREATE INDEX idx_notifications_user_id ON public."Notifications"("user_id");
+CREATE INDEX idx_notifications_scheduled_at_is_notified ON public."Notifications"("scheduled_at") 
+WHERE "is_notified" = false;

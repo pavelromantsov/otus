@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ConsoleBot.Core.DataAccess;
+﻿using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
-using LinqToDB.Async;
 using LinqToDB;
+using LinqToDB.Async;
 
 namespace ConsoleBot.Infrastructure.DataAccess
 {
@@ -23,7 +18,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
         {
             using var db = _factory.CreateDataContext();
             var listModel = await db.ToDoLists
-                .LoadWith(l => l.User) 
+                .LoadWith(l => l.User)
                 .FirstOrDefaultAsync(l => l.Id == id, ct);
 
             return listModel != null ? ModelMapper.MapFromModel(listModel) : null;

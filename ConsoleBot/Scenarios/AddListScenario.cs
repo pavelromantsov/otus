@@ -38,9 +38,9 @@ namespace ConsoleBot.Scenarios
                 case "Name":
                     var name = message.Text;
                     var userObj = (ToDoUser)context.Data["User"];
-                    if(userObj == null)
+                    if (userObj == null)
                     {
-                        userObj = await _userService.GetUserByTelegramUserIdAsync(message.Chat.Id, ct); // Регистрируем пользователя заново, если нужно
+                        userObj = await _userService.GetUserByTelegramUserIdAsync(message.Chat.Id, ct);
                         context.Data["User"] = userObj;
                     }
                     await _toDoListService.Add(userObj, name, ct);

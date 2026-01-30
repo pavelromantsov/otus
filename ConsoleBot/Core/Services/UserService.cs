@@ -1,8 +1,5 @@
 ﻿using ConsoleBot.Core.DataAccess;
-using ConsoleBot.Core.DataAccess.Models;
 using ConsoleBot.Core.Entities;
-using ConsoleBot.Infrastructure.DataAccess;
-using LinqToDB.Data;
 
 namespace ConsoleBot.Core.Services
 {
@@ -33,12 +30,12 @@ namespace ConsoleBot.Core.Services
             return await _repository.GetUserAsync(userId, ct);
         }
 
-        public async Task<ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId,  CancellationToken ct)
+        public async Task<ToDoUser?> GetUserByTelegramUserIdAsync(long telegramUserId, CancellationToken ct)
         {
             return await _repository.GetUserByTelegramUserIdAsync(telegramUserId, ct);
         }
 
-        public ToDoUser? Add(long telegramUserId, CancellationToken ct) 
+        public ToDoUser? Add(long telegramUserId, CancellationToken ct)
         {
             var newUser = new ToDoUser();
             _repository.AddAsync(newUser, ct);
@@ -50,12 +47,12 @@ namespace ConsoleBot.Core.Services
             var user = await _repository.GetUserByTelegramUserIdAsync(userId, ct);
             if (user != null) return user;
 
-            return null; 
+            return null;
         }
 
-        public async Task <bool> IsUserRegistered(long telegramUserId, CancellationToken ct)
+        public async Task<bool> IsUserRegistered(long telegramUserId, CancellationToken ct)
         {
-            var user = await _repository.GetUserByTelegramUserIdAsync(telegramUserId,  ct);
+            var user = await _repository.GetUserByTelegramUserIdAsync(telegramUserId, ct);
             return user != null;
         }
 

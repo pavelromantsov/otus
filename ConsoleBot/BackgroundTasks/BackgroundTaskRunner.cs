@@ -8,30 +8,21 @@ namespace ConsoleBot.BackgroundTasks
         private Task? _runningTasks;
         private CancellationTokenSource? _stoppingCts;
 
-        /// <summary>
-        /// Регистрирует задачу для последующего запуска.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Tasks are already running</exception>
         public void AddTask(IBackgroundTask task)
         {
             if (_runningTasks is not null)
-                throw new InvalidOperationException("Tasks are already running");
+                throw new InvalidOperationException("Задачи уже запущены");
 
             _tasks.Add(task);
         }
 
-        /// <summary>
-        /// Запускает зарегистрированные задачи
-        /// </summary>
-        /// <exception cref="InvalidOperationException">Tasks are already running</exception>
         public void StartTasks(CancellationToken ct)
         {
             if (_runningTasks is not null)
-                throw new InvalidOperationException("Tasks are already running");
+                throw new InvalidOperationException("Задачи уже запущены");
 
             _stoppingCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
-            // Отдельная обёртка для логирования и корректной обработки отмены
             static async Task RunSafe(IBackgroundTask task, CancellationToken ct)
             {
                 try
@@ -44,17 +35,13 @@ namespace ConsoleBot.BackgroundTasks
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"Error in {task.GetType().Name}: {ex}");
+                    Console.Error.WriteLine($"Ошибка в {task.GetType().Name}: {ex}");
                 }
             }
 
-            // Собираем все таски в один
             _runningTasks = Task.WhenAll(_tasks.Select(t => RunSafe(t, _stoppingCts.Token)));
         }
 
-        /// <summary>
-        /// Останавливает запущенные задачи и и ожидает из завершения
-        /// </summary>
         public async Task StopTasks(CancellationToken ct)
         {
             if (_runningTasks is null)

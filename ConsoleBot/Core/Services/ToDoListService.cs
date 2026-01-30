@@ -1,10 +1,9 @@
 ﻿using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
-using ConsoleBot.Infrastructure.DataAccess;
 
 namespace ConsoleBot.Core.Services
 {
-    public class ToDoListService:IToDoListService
+    public class ToDoListService : IToDoListService
     {
         private readonly IToDoListRepository _todoListRepository;
         public ToDoListService(IToDoListRepository todoListRepository)
@@ -27,7 +26,7 @@ namespace ConsoleBot.Core.Services
                 Id = Guid.NewGuid(),
                 Name = name,
                 CreatedAt = DateTime.UtcNow,
-                User = user  
+                User = user
             };
 
             await _todoListRepository.Add(newList, ct);

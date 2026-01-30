@@ -1,6 +1,7 @@
 ﻿using ConsoleBot.BackgroundTasks;
 using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Services;
+using ConsoleBot.Infrastructure;
 using ConsoleBot.Infrastructure.DataAccess;
 using ConsoleBot.Scenarios;
 using ConsoleBot.TelegramBot;
@@ -17,8 +18,8 @@ namespace ConsoleBot
         public static ToDoUser? currentUser = null;
         public const string version = "6.1";
         public const string created_date = "20-08-2025";
-        public const string updated_date = "12-01-2026";
-        public const string whatsNew_text = "Реализованы фоновые задачи";
+        public const string updated_date = "30-01-2026";
+        public const string whatsNew_text = "Добавлена отправка уведомлений о просроченных задачах";
 
         public static async Task Main()
         {
@@ -31,8 +32,8 @@ namespace ConsoleBot
 
                 string botKey = configuration.GetSection("Telegram_key").Value
                     ?? throw new InvalidOperationException("Telegram_key not found");
-                
-                
+
+
                 // SQL репозитории вместо File
                 var factory = new DataContextFactory(configuration);
                 var userRepo = new SqlUserRepository(factory);
@@ -45,17 +46,20 @@ namespace ConsoleBot
                 var todoReportService = new ToDoReportService(todoRepo);
                 var toDoListService = new ToDoListService(todoListRepo);
 
+                // Новый сервис уведомлений
+                var notificationService = new NotificationService(factory);
+
                 // Контекст сценариев
                 var contextRepository = new InMemoryScenarioContextRepository();
 
                 // Сценарии 
                 var scenarios = new List<IScenario>
-            {
-                new AddTaskScenario(userService, todoService, contextRepository, toDoListService),
-                new AddListScenario(userService, toDoListService, todoService, contextRepository),
-                new DeleteListScenario(userService, toDoListService, todoService, contextRepository),
-                new DeleteTaskScenario(userService, toDoListService, todoService, contextRepository),
-            };
+        {
+            new AddTaskScenario(userService, todoService, contextRepository, toDoListService),
+            new AddListScenario(userService, toDoListService, todoService, contextRepository),
+            new DeleteListScenario(userService, toDoListService, todoService, contextRepository),
+            new DeleteTaskScenario(userService, toDoListService, todoService, contextRepository),
+        };
 
                 // Бот
                 var botClient = new TelegramBotClient(botKey);
@@ -71,6 +75,17 @@ namespace ConsoleBot
                 // Запуск
                 var cts = new CancellationTokenSource();
                 var backgroundRunner = new BackgroundTaskRunner();
+
+                var deadlineTask = new DeadlineBackgroundTask(notificationService, userRepo, todoRepo);
+                backgroundRunner.AddTask(deadlineTask);
+
+                // Добавление фоновой задачи уведомлений
+                var notificationTask = new NotificationBackgroundTask(notificationService, userRepo, botClient);
+                backgroundRunner.AddTask(notificationTask);
+
+                var todayTask = new TodayBackgroundTask(notificationService, userRepo, todoRepo);
+                backgroundRunner.AddTask(todayTask);
+
                 var resetScenarioTask = new ResetScenarioBackgroundTask(
                     resetScenarioTimeout: TimeSpan.FromHours(1),
                     scenarioRepository: contextRepository,

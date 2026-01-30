@@ -36,9 +36,9 @@ namespace ConsoleBot.Core.Services
             var item = new ToDoItem
             {
                 Id = Guid.NewGuid(),
-                Name = name,              
-                User = user,              
-                List = list,              
+                Name = name,
+                User = user,
+                List = list,
                 Deadline = deadline,
                 State = ToDoItemState.Active,
                 CreatedAt = DateTime.UtcNow,
@@ -112,7 +112,7 @@ namespace ConsoleBot.Core.Services
                 // задачи конкретного списка
                 filtered = filtered.Where(item => item.List != null && item.List.Id == listId.Value);
             }
-            else 
+            else
             {
                 // задачи "без списка"
                 filtered = filtered.Where(item => item.List == null);

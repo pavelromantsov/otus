@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ConsoleBot.Core.DataAccess.Models;
+﻿using ConsoleBot.Core.DataAccess.Models;
 using ConsoleBot.Core.Entities;
 
 namespace ConsoleBot.Infrastructure.DataAccess
 {
     public static class ModelMapper
     {
-     
+
         public static ToDoUser MapFromModel(ToDoUserModel model)
         {
             if (model == null) return null!;
@@ -45,7 +40,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
             {
                 Id = model.Id,
                 Name = model.Name,
-                User = model.User != null ? MapFromModel(model.User) : null,  
+                User = model.User != null ? MapFromModel(model.User) : null,
                 CreatedAt = model.CreatedAt
             };
         }
@@ -57,7 +52,7 @@ namespace ConsoleBot.Infrastructure.DataAccess
             return new ToDoListModel
             {
                 Id = entity.Id,
-                UserId = entity.User?.UserId ?? Guid.Empty,  
+                UserId = entity.User?.UserId ?? Guid.Empty,
                 Name = entity.Name,
                 CreatedAt = entity.CreatedAt
             };
@@ -73,9 +68,9 @@ namespace ConsoleBot.Infrastructure.DataAccess
                 Name = model.Name,
                 CreatedAt = model.CreatedAt,
                 Deadline = model.Deadline,
-                State = (ToDoItemState)model.State,  
+                State = (ToDoItemState)model.State,
                 StateChangedAt = model.StateChangedAt,
-                User = ModelMapper.MapFromModel(model.User), 
+                User = ModelMapper.MapFromModel(model.User),
                 List = model.List != null ? ModelMapper.MapFromModel(model.List) : null
             };
         }
@@ -92,10 +87,29 @@ namespace ConsoleBot.Infrastructure.DataAccess
                 Deadline = entity.Deadline,
                 State = (int)entity.State,
                 StateChangedAt = entity.StateChangedAt,
-                UserId = entity.User.UserId,    
+                UserId = entity.User.UserId,
                 ListId = entity.List?.Id
             };
         }
-
+        public static Notification MapFromModel(NotificationModel m) =>
+            new Notification
+            {
+                Id = m.Id,
+                UserId = m.UserId,
+                Type = m.Type,
+                Text = m.Text,
+                ScheduledAt = m.ScheduledAt,
+                IsNotified = m.IsNotified,
+                NotifiedAt = m.NotifiedAt,
+                User = m.User == null
+                    ? null!
+                    : new ToDoUser
+                    {
+                        UserId = m.User.UserId,
+                        TelegramUserId = m.User.TelegramUserId,
+                        TelegramUserName = m.User.TelegramUserName,
+                        RegisteredAt = m.User.RegisteredAt
+                    }
+            };
     }
 }
