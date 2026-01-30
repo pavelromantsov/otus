@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ConsoleBot.Core.Entities;
+﻿using ConsoleBot.Core.Entities;
 using ConsoleBot.Core.Services;
-using Telegram.Bot.Types.ReplyMarkups;
+using ConsoleBot.TelegramBot.Dto;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using ConsoleBot.TelegramBot.Dto;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ConsoleBot.Scenarios
 {

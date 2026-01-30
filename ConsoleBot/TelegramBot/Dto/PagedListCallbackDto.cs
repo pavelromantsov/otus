@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ConsoleBot.TelegramBot.Dto
+﻿namespace ConsoleBot.TelegramBot.Dto
 {
-    public class PagedListCallbackDto:ToDoItemCallbackDto
+    public class PagedListCallbackDto : ToDoItemCallbackDto
     {
         public int Page { get; set; }
         public PagedListCallbackDto(string action, Guid? toDoListId, int page)
@@ -35,6 +29,6 @@ namespace ConsoleBot.TelegramBot.Dto
         public override string ToString()
         {
             return $"{Action}|{ToDoListId}|{Page}";
-        }    
+        }
     }
 }

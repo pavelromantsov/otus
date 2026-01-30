@@ -181,7 +181,7 @@ namespace ConsoleBot.TelegramBot
             // Найдем сценарий, соответствующий текущему типу сценария 
             var scenario = GetScenario(context.CurrentScenario, context);
             var currentStep = context.CurrentStep;
-            var result = await scenario.HandleMessageAsync(_botClient, context, message, list,  cancellationToken);
+            var result = await scenario.HandleMessageAsync(_botClient, context, message, list, cancellationToken);
 
             // Если сценарий завершился, сбросим контекст
             if (result == ScenarioResult.Completed)
@@ -249,7 +249,7 @@ namespace ConsoleBot.TelegramBot
             {
                 var task = tasks[i];
                 var data = $"complete|{task.Id}";
-                rows.Add(new[]{InlineKeyboardButton.WithCallbackData($"{i + 1}. {task.Name}", data)});
+                rows.Add(new[] { InlineKeyboardButton.WithCallbackData($"{i + 1}. {task.Name}", data) });
             }
 
             var keyboard = new InlineKeyboardMarkup(rows);
@@ -551,7 +551,7 @@ namespace ConsoleBot.TelegramBot
                 $"Задачи из {listName}:",
                 replyMarkup: keyboard,
                 cancellationToken: ct);
-            
+
             var completedDto = new PagedListCallbackDto("show_completed", dto.ToDoListId, 0);
             var completedRow = new[]
             {
@@ -623,7 +623,7 @@ namespace ConsoleBot.TelegramBot
         public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, HandleErrorSource handleErrorSource, CancellationToken cancellationToken)
         {
             Console.WriteLine($"Ошибка: {exception.Message}");
-            await Task.CompletedTask; // Чтобы удовлетворить контракт асинхронного метода
+            await Task.CompletedTask; 
         }
         private async Task SendDefaultKeyboard(long chatId, CancellationToken cancellationToken)
         {

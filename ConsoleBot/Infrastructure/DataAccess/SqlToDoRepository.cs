@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ConsoleBot.Core.DataAccess.Models;
-using ConsoleBot.Core.DataAccess;
+﻿using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
-using LinqToDB.Async;
-using LinqToDB.Linq;
 using LinqToDB;
+using LinqToDB.Async;
 
 
 namespace ConsoleBot.Infrastructure.DataAccess
@@ -122,6 +115,21 @@ namespace ConsoleBot.Infrastructure.DataAccess
                 .FirstOrDefaultAsync(i => i.Id == id, ct);
 
             return ModelMapper.MapFromModel(item);
+        }
+
+        public async Task<IReadOnlyList<ToDoItem>> GetActiveWithDeadline(Guid userId, DateTime from, DateTime to, CancellationToken ct)
+        {
+            using var db = _factory.CreateDataContext();
+            ct.ThrowIfCancellationRequested();
+
+            var models = await db.ToDoItems
+                .Where(t => t.UserId == userId
+                         && t.State == (int)ToDoItemState.Active
+                         && t.Deadline >= from
+                         && t.Deadline < to)
+                .ToListAsync(ct);
+
+            return models.Select(ModelMapper.MapFromModel).ToList().AsReadOnly();
         }
     }
 }

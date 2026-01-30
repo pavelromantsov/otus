@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ConsoleBot.Core.DataAccess.Models;
-using LinqToDB.Data;
+﻿using ConsoleBot.Core.DataAccess.Models;
 using LinqToDB;
-using LinqToDB.Linq;
+using LinqToDB.Data;
 
 namespace ConsoleBot.Infrastructure.DataAccess
 {
@@ -20,5 +14,6 @@ namespace ConsoleBot.Infrastructure.DataAccess
         public ITable<ToDoUserModel> ToDoUsers => this.GetTable<ToDoUserModel>();
         public ITable<ToDoListModel> ToDoLists => this.GetTable<ToDoListModel>();
         public ITable<ToDoItemModel> ToDoItems => this.GetTable<ToDoItemModel>();
+        public ITable<NotificationModel> Notifications => this.GetTable<NotificationModel>();
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ConsoleBot.Scenarios
+﻿namespace ConsoleBot.Scenarios
 {
     public interface IScenarioContextRepository
     {

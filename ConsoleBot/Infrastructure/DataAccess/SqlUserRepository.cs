@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ConsoleBot.Core.DataAccess;
+﻿using ConsoleBot.Core.DataAccess;
 using ConsoleBot.Core.Entities;
-using LinqToDB.Async;
 using LinqToDB;
+using LinqToDB.Async;
 
 namespace ConsoleBot.Infrastructure.DataAccess
 {
@@ -66,6 +61,16 @@ namespace ConsoleBot.Infrastructure.DataAccess
         public async Task<ToDoUser?> GetUserAsync(long telegramUserId, CancellationToken ct)
         {
             return await GetUserByTelegramUserIdAsync(telegramUserId, ct);
+        }
+
+        public async Task<IReadOnlyList<ToDoUser>> GetUsers(CancellationToken ct)
+        {
+            using var db = _factory.CreateDataContext();
+            ct.ThrowIfCancellationRequested();
+
+            var userModels = await db.ToDoUsers.ToListAsync(ct);
+            var users = userModels.Select(ModelMapper.MapFromModel).ToList();
+            return users.AsReadOnly();
         }
     }
 }

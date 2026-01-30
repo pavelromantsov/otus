@@ -6,6 +6,6 @@
         public string Name { get; set; }
         public ToDoUser User { get; set; }
         public DateTime CreatedAt { get; set; }
-        
+
     }
 }

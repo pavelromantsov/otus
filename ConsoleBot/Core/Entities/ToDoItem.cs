@@ -15,6 +15,7 @@
     public enum ToDoItemState
     {
         Active,
-        Completed
+        Completed,
+        Expired
     }
 }

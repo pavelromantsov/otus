@@ -35,7 +35,7 @@ namespace ConsoleBot.Scenarios
                     ToDoList? list,
                     CancellationToken ct)
         {
-                    switch (context.CurrentStep)
+            switch (context.CurrentStep)
             {
                 case null:
                     {

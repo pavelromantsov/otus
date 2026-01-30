@@ -12,7 +12,7 @@ namespace ConsoleBot.Core.Services
             _todoRepository = todoRepository;
         }
 
-        public async Task< (int total, int completed, int active, DateTime generatedAt)> GetUserStatsAsync(Guid userId, CancellationToken ct)
+        public async Task<(int total, int completed, int active, DateTime generatedAt)> GetUserStatsAsync(Guid userId, CancellationToken ct)
         {
             var allTasks = await _todoRepository.GetAllByUserIdAsync(userId, ct);
             var total = allTasks.Count;
